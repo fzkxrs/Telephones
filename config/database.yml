@@ -1,0 +1,6 @@
+development:
+  adapter: postgresql
+  database: phone_directory
+  username: user
+  password: password
+  host: localhost
