@@ -1,0 +1,1 @@
+Employee.create(company: 'Company A', department: 'Dept 1', name: 'John Doe', phone: '123456789', fax: '987654321')
