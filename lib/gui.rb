@@ -1,10 +1,16 @@
 require 'gtk3'
+require_relative './database'
 
 class GUI
-  def initialize
+  def initialize(connection)
+    @connection = connection
     @window = Gtk::Window.new("Телефоны ОАО \"Обеспечение РФЯЦ-ВНИИЭФ\" и ДЗО")
     @window.set_default_size(800, 400)
     @window.set_border_width(10)
+    @window.set_margin_top(10)
+    @window.set_margin_bottom(10)
+    @window.set_margin_start(10)
+    @window.set_margin_end(10)
 
     # Main layout container (Horizontal Box)
     hbox = Gtk::Box.new(:horizontal, 10)
@@ -33,11 +39,11 @@ class GUI
     vbox_left.pack_start(lab_combo, expand: false, fill: false, padding: 10)
 
     fio_entry = Gtk::Entry.new
-    fio_entry.set_placeholder_text("ФИО")
+    fio_entry.placeholder_text = "ФИО"
     vbox_left.pack_start(fio_entry, expand: false, fill: false, padding: 10)
 
     work_phone_entry = Gtk::Entry.new
-    work_phone_entry.set_placeholder_text("Служебный телефон")
+    work_phone_entry.placeholder_text = "Служебный телефон"
     vbox_left.pack_start(work_phone_entry, expand: false, fill: false, padding: 10)
 
     search_button = Gtk::Button.new(label: "Поиск")
@@ -132,6 +138,19 @@ class GUI
     hbox.pack_start(vbox_left, expand: false, fill: false, padding: 10)
     hbox.pack_start(grid, expand: true, fill: true, padding: 10)
     hbox.pack_start(photo_box, expand: false, fill: false, padding: 10)
+
+    # Adding a search button action in your GTK3 GUI
+    search_button.signal_connect('clicked') do
+      res = @connection.search_employee(fio_entry.text)
+
+      # Populate the fields with the result
+      if res.any?
+        details_fields["Предприятие"].set_placeholder_text = res[0]['enterprise']
+        details_fields["Подразделение"].set_placeholder_text = res[0]['department']
+      else
+        puts "No results found"
+      end
+    end
 
     @window.add(hbox)
 
