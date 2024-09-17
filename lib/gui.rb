@@ -2,128 +2,144 @@ require 'gtk3'
 
 class GUI
   def initialize
-    @window = Gtk::Window.new("Телефоны ОАО")
-    @window.set_default_size(800, 600)
-    @window.signal_connect("destroy") { Gtk.main_quit }
+    @window = Gtk::Window.new("Телефоны ОАО \"Обеспечение РФЯЦ-ВНИИЭФ\" и ДЗО")
+    @window.set_default_size(800, 400)
+    @window.set_border_width(10)
 
-    # Create a grid layout for the entire window
-    grid = Gtk::Grid.new
-    @window.add(grid)
+    # Main layout container (Horizontal Box)
+    hbox = Gtk::Box.new(:horizontal, 10)
 
-    # Create Menu bar
-    create_menu_bar(grid)
+    # Left side (Search Section)
+    vbox_left = Gtk::Box.new(:vertical, 5)
 
-    # Create the left side (search section)
-    create_search_panel(grid)
+    # Search Fields
+    search_label = Gtk::Label.new("Поиск")
+    vbox_left.pack_start(search_label, expand: false, fill: false, padding: 10)
 
-    # Create the right side (details section)
-    create_details_panel(grid)
+    enterprise_combo = Gtk::ComboBoxText.new
+    enterprise_combo.append_text("Предприятие")
+    vbox_left.pack_start(enterprise_combo, expand: false, fill: false, padding: 10)
 
-    @window.show_all
-  end
+    subdivision_combo = Gtk::ComboBoxText.new
+    subdivision_combo.append_text("Подразделение")
+    vbox_left.pack_start(subdivision_combo, expand: false, fill: false, padding: 10)
 
-  def create_menu_bar(grid)
-    menu_bar = Gtk::MenuBar.new
-    file_menu = Gtk::Menu.new
-    phone_menu = Gtk::Menu.new
+    department_combo = Gtk::ComboBoxText.new
+    department_combo.append_text("Отдел/Группа")
+    vbox_left.pack_start(department_combo, expand: false, fill: false, padding: 10)
 
-    file_item = Gtk::MenuItem.new(label: "File")
-    phone_item = Gtk::MenuItem.new(label: "Phone")
+    lab_combo = Gtk::ComboBoxText.new
+    lab_combo.append_text("Лаборатория")
+    vbox_left.pack_start(lab_combo, expand: false, fill: false, padding: 10)
 
-    file_item.set_submenu(file_menu)
-    phone_item.set_submenu(phone_menu)
+    fio_entry = Gtk::Entry.new
+    fio_entry.set_placeholder_text("ФИО")
+    vbox_left.pack_start(fio_entry, expand: false, fill: false, padding: 10)
 
-    menu_bar.append(file_item)
-    menu_bar.append(phone_item)
+    work_phone_entry = Gtk::Entry.new
+    work_phone_entry.set_placeholder_text("Служебный телефон")
+    vbox_left.pack_start(work_phone_entry, expand: false, fill: false, padding: 10)
 
-    grid.attach(menu_bar, 0, 0, 2, 1)
-  end
-
-  def create_search_panel(grid)
-    vbox_left = Gtk::Box.new(:vertical, 10)
-    frame = Gtk::Frame.new("Поиск")
-    frame.add(vbox_left)
-
-    # Предприятие (Company)
-    vbox_left.pack_start(Gtk::Label.new("Предприятие:"), expand: false, fill: false, padding: 5)
-    @company_combo = Gtk::ComboBoxText.new
-    @company_combo.append_text("Company A")
-    @company_combo.append_text("Company B")
-    vbox_left.pack_start(@company_combo, expand: false, fill: false, padding: 5)
-
-    # Подразделение (Department)
-    vbox_left.pack_start(Gtk::Label.new("Подразделение:"), expand: false, fill: false, padding: 5)
-    @department_combo = Gtk::ComboBoxText.new
-    @department_combo.append_text("Department 1")
-    @department_combo.append_text("Department 2")
-    vbox_left.pack_start(@department_combo, expand: false, fill: false, padding: 5)
-
-    # Отдел/Группа (Group)
-    vbox_left.pack_start(Gtk::Label.new("Отдел/Группа:"), expand: false, fill: false, padding: 5)
-    @group_entry = Gtk::Entry.new
-    vbox_left.pack_start(@group_entry, expand: false, fill: false, padding: 5)
-
-    # Лаборатория (Lab)
-    vbox_left.pack_start(Gtk::Label.new("Лаборатория:"), expand: false, fill: false, padding: 5)
-    @lab_entry = Gtk::Entry.new
-    vbox_left.pack_start(@lab_entry, expand: false, fill: false, padding: 5)
-
-    # ФИО (Full Name)
-    vbox_left.pack_start(Gtk::Label.new("ФИО:"), expand: false, fill: false, padding: 5)
-    @name_entry = Gtk::Entry.new
-    vbox_left.pack_start(@name_entry, expand: false, fill: false, padding: 5)
-
-    # Служебный телефон (Work Phone)
-    vbox_left.pack_start(Gtk::Label.new("Служебный телефон:"), expand: false, fill: false, padding: 5)
-    @phone_entry = Gtk::Entry.new
-    vbox_left.pack_start(@phone_entry, expand: false, fill: false, padding: 5)
-
-    # Search Button
     search_button = Gtk::Button.new(label: "Поиск")
-    search_button.signal_connect "clicked" do
-      # Add search functionality here
-    end
     vbox_left.pack_start(search_button, expand: false, fill: false, padding: 10)
 
-    grid.attach(frame, 0, 1, 1, 1)
-  end
+    # Right side (Details Section)
+    grid = Gtk::Grid.new
+    grid.column_spacing = 10
+    grid.row_spacing = 5
 
-  def create_details_panel(grid)
-    vbox_right = Gtk::Box.new(:vertical, 10)
-    frame = Gtk::Frame.new
-    frame.add(vbox_right)
+    # Labels and entries for right side fields
+    details_fields = {
+      "Предприятие" => Gtk::Entry.new,
+      "Подразделение" => Gtk::Entry.new,
+      "Отдел/Группа" => Gtk::Entry.new,
+      "Лаборатория" => Gtk::Entry.new,
+      "ФИО/Служба" => Gtk::Entry.new,
+      "Должность" => Gtk::Entry.new
+    }
 
-    # Предприятие (Company)
-    vbox_right.pack_start(Gtk::Label.new("Предприятие:"), expand: false, fill: false, padding: 5)
-    @company_details = Gtk::Entry.new
-    vbox_right.pack_start(@company_details, expand: false, fill: false, padding: 5)
-
-    # Подразделение (Department)
-    vbox_right.pack_start(Gtk::Label.new("Подразделение:"), expand: false, fill: false, padding: 5)
-    @department_details = Gtk::Entry.new
-    vbox_right.pack_start(@department_details, expand: false, fill: false, padding: 5)
-
-    # Other fields...
-    fields = ["Отдел/Группа", "Лаборатория", "ФИО/Служба", "Должность"]
-    fields.each do |field|
-      vbox_right.pack_start(Gtk::Label.new("#{field}:"), expand: false, fill: false, padding: 5)
-      vbox_right.pack_start(Gtk::Entry.new, expand: false, fill: false, padding: 5)
+    row = 0
+    details_fields.each do |label_text, widget|
+      label = Gtk::Label.new(label_text)
+      grid.attach(label, 0, row, 1, 1)
+      grid.attach(widget, 1, row, 1, 1)
+      row += 1
     end
 
-    # Telephone/Fax Table
-    table = Gtk::Grid.new
-    table.set_column_spacing(5)
-    vbox_right.pack_start(table, expand: false, fill: false, padding: 5)
+    # Table for phone numbers
+    phone_label = Gtk::Label.new("Телефон")
+    fax_label = Gtk::Label.new("Факс")
+    modem_label = Gtk::Label.new("Модем")
+    mgr_label = Gtk::Label.new("М/г")
 
-    ["Телефон", "Факс", "Модем", "М/г"].each_with_index do |label, index|
-      table.attach(Gtk::Label.new(label), index, 0, 1, 1)
-      table.attach(Gtk::Entry.new, index, 1, 1, 1)
+    grid.attach(phone_label, 1, row, 1, 1)
+    grid.attach(fax_label, 2, row, 1, 1)
+    grid.attach(modem_label, 3, row, 1, 1)
+    grid.attach(mgr_label, 4, row, 1, 1)
+    row += 1
+
+    # Entries for phone numbers (Phone/Fax/Modem/Mgr)
+    phone_entry = Gtk::Entry.new
+    fax_entry = Gtk::Entry.new
+    modem_entry = Gtk::Entry.new
+    mgr_entry = Gtk::Entry.new
+
+    grid.attach(phone_entry, 1, row, 1, 1)
+    grid.attach(fax_entry, 2, row, 1, 1)
+    grid.attach(modem_entry, 3, row, 1, 1)
+    grid.attach(mgr_entry, 4, row, 1, 1)
+    row += 1
+
+    # Add additional fields below the table
+    corp_internal_label = Gtk::Label.new("Корп. внутр. тел.")
+    corp_internal_entry = Gtk::Entry.new
+    grid.attach(corp_internal_label, 0, row, 1, 1)
+    grid.attach(corp_internal_entry, 1, row, 1, 1)
+    row += 1
+
+    internal_tel_label = Gtk::Label.new("Внутр. тел. по предприятию")
+    internal_tel_entry = Gtk::Entry.new
+    grid.attach(internal_tel_label, 0, row, 1, 1)
+    grid.attach(internal_tel_entry, 1, row, 1, 1)
+    row += 1
+
+    email_label = Gtk::Label.new("e-mail")
+    email_entry = Gtk::Entry.new
+    grid.attach(email_label, 0, row, 1, 1)
+    grid.attach(email_entry, 1, row, 1, 1)
+    row += 1
+
+    install_address_label = Gtk::Label.new("Адрес установки")
+    install_address_entry = Gtk::Entry.new
+    grid.attach(install_address_label, 0, row, 1, 1)
+    grid.attach(install_address_entry, 1, row, 1, 1)
+
+    # Add the photo placeholder
+    photo_box = Gtk::DrawingArea.new
+    photo_box.set_size_request(100, 150)
+    photo_box.override_background_color(:normal, Gdk::RGBA.new(0.9, 0.9, 0.9, 1))
+    photo_box.signal_connect "draw" do
+      cr = photo_box.window.create_cairo_context
+      cr.set_source_rgb(0.6, 0.6, 0.6)
+      cr.move_to(0, 0)
+      cr.line_to(100, 150)
+      cr.move_to(100, 0)
+      cr.line_to(0, 150)
+      cr.stroke
     end
 
-    grid.attach(frame, 1, 1, 1, 1)
+    # Organize everything in the main layout
+    hbox.pack_start(vbox_left, expand: false, fill: false, padding: 10)
+    hbox.pack_start(grid, expand: true, fill: true, padding: 10)
+    hbox.pack_start(photo_box, expand: false, fill: false, padding: 10)
+
+    @window.add(hbox)
+
+    @window.signal_connect("destroy") { Gtk.main_quit }
   end
 
   def run
+    @window.show_all
     Gtk.main
   end
 end
