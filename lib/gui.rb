@@ -2,8 +2,7 @@ require 'gtk3'
 require_relative './database'
 
 class GUI
-  def initialize(connection)
-    @connection = connection
+  def initialize(db)
     @window = Gtk::Window.new("Телефоны ОАО \"Обеспечение РФЯЦ-ВНИИЭФ\" и ДЗО")
     @window.set_default_size(800, 400)
     @window.set_border_width(10)
@@ -11,6 +10,7 @@ class GUI
     @window.set_margin_bottom(10)
     @window.set_margin_start(10)
     @window.set_margin_end(10)
+    @db = db
 
     # Main layout container (Horizontal Box)
     hbox = Gtk::Box.new(:horizontal, 10)
@@ -56,17 +56,19 @@ class GUI
 
     # Labels and entries for right side fields
     details_fields = {
-      "Предприятие" => Gtk::Entry.new,
-      "Подразделение" => Gtk::Entry.new,
-      "Отдел/Группа" => Gtk::Entry.new,
-      "Лаборатория" => Gtk::Entry.new,
-      "ФИО/Служба" => Gtk::Entry.new,
-      "Должность" => Gtk::Entry.new
+      "Предприятие": Gtk::Entry.new,
+      "Подразделение": Gtk::Entry.new,
+      "Отдел/Группа": Gtk::Entry.new,
+      "Лаборатория": Gtk::Entry.new,
+      "ФИО/Служба": Gtk::Entry.new,
+      "Должность": Gtk::Entry.new
     }
 
     row = 0
     details_fields.each do |label_text, widget|
       label = Gtk::Label.new(label_text)
+      widget.editable = false
+      widget.can_focus = false
       grid.attach(label, 0, row, 1, 1)
       grid.attach(widget, 1, row, 1, 1)
       row += 1
@@ -141,12 +143,12 @@ class GUI
 
     # Adding a search button action in your GTK3 GUI
     search_button.signal_connect('clicked') do
-      res = @connection.search_employee(fio_entry.text)
+      res = db.search_employee(fio_entry.text)
 
       # Populate the fields with the result
+      #
       if res.any?
-        details_fields["Предприятие"].set_placeholder_text = res[0]['enterprise']
-        details_fields["Подразделение"].set_placeholder_text = res[0]['department']
+        details_fields.each { |key, value| value.text = res[0]['enterprise'] }
       else
         puts "No results found"
       end
