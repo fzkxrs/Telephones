@@ -1,6 +1,11 @@
 development:
-  adapter: postgresql
-  database: development
+  database: postgres
   username: postgres
   password: 1144
+  host: localhost
+
+release:
+  database: nil
+  username: nil
+  password: nil
   host: localhost

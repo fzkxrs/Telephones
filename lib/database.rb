@@ -2,10 +2,12 @@ require 'pg'
 
 class Database
   @connection = nil
-  def initialize(dbname, user, password)
-    @dbname = dbname
-    @user = user
-    @password = password
+  def initialize(db_config)
+    @adapter = db_config['adapter']
+    @dbname = db_config['database']
+    @user = db_config['username']
+    @password = db_config['password']
+    @host = db_config['host']
     @employees_table_name = "data"
   end
 
@@ -29,7 +31,7 @@ class Database
   private
   # Method to execute SQL query and return result
   def execute_query(query, *args)
-    @connection = PG.connect(dbname: @dbname, user: @user, password: @password)
+    @connection = PG.connect(dbname: @dbname, user: @user, password: @password,  host: @host)
     begin
       result = @connection.exec_params(query, args)
       @connection.close
