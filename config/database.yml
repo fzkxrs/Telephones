@@ -1,6 +1,18 @@
 development:
-  adapter: postgresql
-  database: phone_directory
-  username: user
-  password: password
+  database: postgres
+  username: postgres
+  password: 1144
   host: localhost
+
+release:
+  database: nil
+  username: nil
+  password: nil
+  host: localhost
+
+test:
+  adapter: postgresql
+  host: localhost
+  database: telephones_test
+  username: test_user
+  password: test_password

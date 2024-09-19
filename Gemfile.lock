@@ -12,6 +12,7 @@ GEM
       minitest (>= 5.1)
       tzinfo (~> 2.0)
       zeitwerk (~> 2.3)
+    ast (2.4.2)
     atk (4.2.2)
       glib2 (= 4.2.2)
     cairo (1.17.13)
@@ -43,19 +44,41 @@ GEM
     i18n (1.14.6)
       concurrent-ruby (~> 1.0)
     json (2.7.2)
+    language_server-protocol (3.17.0.3)
     matrix (0.4.2)
     minitest (5.25.1)
     native-package-installer (1.1.9)
     pango (4.2.2)
       cairo-gobject (= 4.2.2)
       gobject-introspection (= 4.2.2)
+    parallel (1.26.3)
+    parser (3.3.5.0)
+      ast (~> 2.4.1)
+      racc
     pg (1.5.8-x64-mingw-ucrt)
     pkg-config (1.5.6)
+    racc (1.8.1)
+    rainbow (3.1.1)
     red-colors (0.4.0)
       json
       matrix
+    regexp_parser (2.9.2)
+    rubocop (1.66.1)
+      json (~> 2.3)
+      language_server-protocol (>= 3.17.0)
+      parallel (~> 1.10)
+      parser (>= 3.3.0.2)
+      rainbow (>= 2.2.2, < 4.0)
+      regexp_parser (>= 2.4, < 3.0)
+      rubocop-ast (>= 1.32.2, < 2.0)
+      ruby-progressbar (~> 1.7)
+      unicode-display_width (>= 2.4.0, < 3.0)
+    rubocop-ast (1.32.3)
+      parser (>= 3.3.1.0)
+    ruby-progressbar (1.13.0)
     tzinfo (2.0.6)
       concurrent-ruby (~> 1.0)
+    unicode-display_width (2.6.0)
     zeitwerk (2.6.18)
 
 PLATFORMS
@@ -65,6 +88,7 @@ DEPENDENCIES
   activerecord
   gtk3 (~> 4.2, >= 4.2.2)
   pg
+  rubocop
 
 BUNDLED WITH
    2.5.18
