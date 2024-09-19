@@ -9,3 +9,10 @@ release:
   username: nil
   password: nil
   host: localhost
+
+test:
+  adapter: postgresql
+  host: localhost
+  database: telephones_test
+  username: test_user
+  password: test_password
