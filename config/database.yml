@@ -11,8 +11,7 @@ release:
   host: localhost
 
 test:
-  adapter: postgresql
+  database: postgres
+  username: postgres
+  password: 1144
   host: localhost
-  database: telephones_test
-  username: test_user
-  password: test_password
