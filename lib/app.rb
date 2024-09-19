@@ -7,3 +7,6 @@ db = Database.new(db_config)
 db.setup_test_data
 app = GUI.new(db)
 app.run
+
+#after all
+db.clear_test_data

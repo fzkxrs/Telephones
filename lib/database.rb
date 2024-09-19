@@ -31,13 +31,13 @@ class Database
       SELECT enterprise, department 
       FROM #{@data_table_name}
       WHERE 
-        fio = $1 AND 
-        enterprise = $2 AND
-        department = $3 AND
-        "group" = $4 AND
-        lab = $5 AND
-        position = $6 AND
-        email = $7 AND
+        fio = $1 OR 
+        enterprise = $2 OR
+        department = $3 OR
+        "group" = $4 OR
+        lab = $5 OR
+        position = $6 OR
+        email = $7 OR
         address = $8
       ORDER BY enterprise ASC;
     SQL
@@ -127,6 +127,7 @@ class Database
   # Method to execute SQL query and return result
   def execute_query(query, *args)
     # Ensure the connection is valid before executing the query
+    open_connection
     if @connection
       begin
         result = @connection.exec_params(query, args)
