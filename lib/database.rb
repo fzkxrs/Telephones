@@ -27,19 +27,56 @@ class Database
   # Search employee by multiple criteria
   def search_employee(enterprise, department, group, lab, fio, tel)
     # Query the database
+    if tel && fio
+      enterprise = nil
+      department = nil
+      group = nil
+      lab = nil
+    end
+    if tel
+      enterprise = nil
+      department = nil
+      group = nil
+      lab = nil
+      fio = nil
+    end
+    if fio
+      enterprise = nil
+      department = nil
+      group = nil
+      lab = nil
+      tel = nil
+    end
     query = <<-SQL
-    SELECT enterprise, department 
-    FROM #{@data_table_name}
-    WHERE 
-      (inner_tel = $6 OR corp_inner_tel = $6) OR (
-        enterprise = $1 AND
-        department = $2 AND
-        "group" = $3 AND
-        lab = $4 AND
-        fio = $5
-      )
-    ORDER BY enterprise ASC;
-  SQL
+      SELECT 
+        d.enterprise, 
+        d.department, 
+        d."group", 
+        d.lab, 
+        d.fio, 
+        d.position, 
+        d.corp_inner_tel, 
+        d.inner_tel, 
+        d.email, 
+        d.address, 
+        p.phone, 
+        p.fax, 
+        p.modem, 
+        p.mg
+      FROM #{@data_table_name} AS d
+      LEFT JOIN #{@phones_table_name} AS p ON d.id = p.id
+      WHERE 
+        (d.inner_tel = $6 OR d.corp_inner_tel = $6)
+        OR (d.fio = $5) 
+        OR (
+          d.enterprise = $1 AND
+          d.department = $2 AND
+          d."group" = $3 AND
+          d.lab = $4 AND
+          d.fio = $5
+        )
+      ORDER BY d.enterprise ASC;
+    SQL
 
     execute_query(query, enterprise, department, group, lab, fio, tel)
   end
@@ -57,11 +94,11 @@ class Database
     test_employees = [
       { fio: 'John Doe', enterprise: 'Some Enterprise', department: 'IT', group: 'Software', lab: 'Lab A',
         position: 'Engineer', email: 'john@example.com', address: '123 Street', corp_inner_tel: 1001, inner_tel: 2001,
-        phones: [ { phone: 5551001, fax: 1111, modem: 2222, mg: 3333 } ]
+        phones: [{ phone: 5551001, fax: 1111, modem: 2222, mg: 3333 }]
       },
       { fio: 'Jane Smith', enterprise: 'Other Enterprise', department: 'HR', group: 'Admin', lab: 'Lab B',
         position: 'Manager', email: 'jane@example.com', address: '456 Avenue', corp_inner_tel: 1002, inner_tel: 2002,
-        phones: [ { phone: 5551002, fax: 1112, modem: 2223, mg: 3334 } ]
+        phones: [{ phone: 5551002, fax: 1112, modem: 2223, mg: 3334 }]
       }
     ]
 
@@ -140,6 +177,20 @@ class Database
     else
       puts "Connection is nil. Could not execute the query."
     end
+  end
+
+  def validate_params(enterprise, department, group, lab, fio, tel)
+    if tel && fio
+      enterprise = nil
+      return [nil, nil, nil, nil, fio, tel]
+    end
+    if tel
+      return [nil, nil, nil, nil, nil, tel]
+    end
+    if fio
+      return [nil, nil, nil, nil, fio, nil]
+    end
+    [enterprise, department, group, lab, fio, tel]
   end
 
   def close

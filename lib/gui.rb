@@ -25,7 +25,7 @@ class GUI
     # Enterprise Label and ComboBox
     enterprise_label = Gtk::Label.new("Предприятие")
     enterprise_combo = Gtk::ComboBoxText.new
-    enterprises = ["Компания A", "Компания B", "Компания C"] # Example values
+    enterprises = ["", "Компания A", "Компания B", "Компания C"] # Example values
     enterprises.each { |enterprise| enterprise_combo.append_text(enterprise) }
     vbox_left.pack_start(enterprise_label, expand: false, fill: false, padding: 0)
     vbox_left.pack_start(enterprise_combo, expand: false, fill: false, padding: 10)
@@ -33,7 +33,7 @@ class GUI
     # Subdivision Label and ComboBox
     subdivision_label = Gtk::Label.new("Подразделение")
     subdivision_combo = Gtk::ComboBoxText.new
-    subdivisions = ["Подразделение 1", "Подразделение 2", "Подразделение 3"] # Example values
+    subdivisions = ["", "Подразделение 1", "Подразделение 2", "Подразделение 3"] # Example values
     subdivisions.each { |subdivision| subdivision_combo.append_text(subdivision) }
     vbox_left.pack_start(subdivision_label, expand: false, fill: false, padding: 0)
     vbox_left.pack_start(subdivision_combo, expand: false, fill: false, padding: 10)
@@ -41,7 +41,7 @@ class GUI
     # Department Label and ComboBox
     department_label = Gtk::Label.new("Отдел/Группа")
     department_combo = Gtk::ComboBoxText.new
-    departments = ["Отдел 1", "Группа 1", "Отдел 2"] # Example values
+    departments = ["", "Отдел 1", "Группа 1", "Отдел 2"] # Example values
     departments.each { |department| department_combo.append_text(department) }
     vbox_left.pack_start(department_label, expand: false, fill: false, padding: 0)
     vbox_left.pack_start(department_combo, expand: false, fill: false, padding: 10)
@@ -49,7 +49,7 @@ class GUI
     # Lab Label and ComboBox
     lab_label = Gtk::Label.new("Лаборатория")
     lab_combo = Gtk::ComboBoxText.new
-    labs = ["Лаборатория 1", "Лаборатория 2", "Лаборатория 3"] # Example values
+    labs = ["", "Лаборатория 1", "Лаборатория 2", "Лаборатория 3"] # Example values
     labs.each { |lab| lab_combo.append_text(lab) }
     vbox_left.pack_start(lab_label, expand: false, fill: false, padding: 0)
     vbox_left.pack_start(lab_combo, expand: false, fill: false, padding: 10)
@@ -78,7 +78,11 @@ class GUI
       group: Gtk::Entry.new,
       lab: Gtk::Entry.new,
       fio: Gtk::Entry.new,
-      position: Gtk::Entry.new
+      position: Gtk::Entry.new,
+      corp_inner_tel: Gtk::Entry.new,
+      inner_tel: Gtk::Entry.new,
+      email: Gtk::Entry.new,
+      address: Gtk::Entry.new
     }
 
     dictionary = {
@@ -87,7 +91,11 @@ class GUI
       group: "Отдел/Группа",
       lab: "Лаборатория",
       fio: "ФИО",
-      position: "Должность"
+      position: "Должность",
+      corp_inner_tel: "Корп. внутр. тел",
+      inner_tel: "Внутр. тел. по предприятию",
+      email: "E-mail",
+      address: "Адрес установки"
     }
 
     row = 0
@@ -118,36 +126,11 @@ class GUI
     fax_entry = Gtk::Entry.new
     modem_entry = Gtk::Entry.new
     mgr_entry = Gtk::Entry.new
-
     grid.attach(phone_entry, 1, row, 1, 1)
     grid.attach(fax_entry, 2, row, 1, 1)
     grid.attach(modem_entry, 3, row, 1, 1)
     grid.attach(mgr_entry, 4, row, 1, 1)
     row += 1
-
-    # Additional fields below the table
-    corp_internal_label = Gtk::Label.new("Корп. внутр. тел.")
-    corp_internal_entry = Gtk::Entry.new
-    grid.attach(corp_internal_label, 0, row, 1, 1)
-    grid.attach(corp_internal_entry, 1, row, 1, 1)
-    row += 1
-
-    internal_tel_label = Gtk::Label.new("Внутр. тел. по предприятию")
-    internal_tel_entry = Gtk::Entry.new
-    grid.attach(internal_tel_label, 0, row, 1, 1)
-    grid.attach(internal_tel_entry, 1, row, 1, 1)
-    row += 1
-
-    email_label = Gtk::Label.new("e-mail")
-    email_entry = Gtk::Entry.new
-    grid.attach(email_label, 0, row, 1, 1)
-    grid.attach(email_entry, 1, row, 1, 1)
-    row += 1
-
-    install_address_label = Gtk::Label.new("Адрес установки")
-    install_address_entry = Gtk::Entry.new
-    grid.attach(install_address_label, 0, row, 1, 1)
-    grid.attach(install_address_entry, 1, row, 1, 1)
 
     # Photo placeholder
     photo_box = Gtk::DrawingArea.new
@@ -189,16 +172,33 @@ class GUI
       )
 
       # Populate the details fields with the result if available
-      if res.any?
+      if res&.any?
         details_fields[:enterprise]&.text = res[0]["enterprise"] || ""
         details_fields[:department]&.text = res[0]["department"] || ""
         details_fields[:group]&.text = res[0]["group"] || ""
         details_fields[:lab]&.text = res[0]["lab"] || ""
         details_fields[:fio]&.text = res[0]["fio"] || ""
         details_fields[:position]&.text = res[0]["position"] || ""
+        details_fields[:corp_inner_tel]&.text = res[0]["corp_inner_tel"] || ""
+        details_fields[:inner_tel]&.text = res[0]["inner_tel"] || ""
+        details_fields[:email]&.text = res[0]["email"] || ""
+        details_fields[:address]&.text = res[0]["address"] || ""
+        phone_entry.text = res[0]["phone"]
+        fax_entry.text = res[0]["fax"]
+        modem_entry.text = res[0]["phone"]
+        mgr_entry.text = res[0]["phone"]
         # Fill in other fields like phones, fax, etc., based on the result.
       else
-        puts "No results found."
+        # Display a message dialog to inform the user
+        dialog = Gtk::MessageDialog.new(
+          parent: @window,
+          flags: :destroy_with_parent,
+          type: :info,
+          buttons_type: :close,
+          message: "Не найдено совпадений по номеру телефона, фио или подразделениям"
+        )
+        dialog.run
+        dialog.destroy
       end
     end
 
