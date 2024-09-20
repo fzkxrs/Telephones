@@ -73,17 +73,27 @@ class GUI
 
     # Labels and entries for right side fields
     details_fields = {
-      "Предприятие": Gtk::Entry.new,
-      "Подразделение": Gtk::Entry.new,
-      "Отдел/Группа": Gtk::Entry.new,
-      "Лаборатория": Gtk::Entry.new,
-      "ФИО/Служба": Gtk::Entry.new,
-      "Должность": Gtk::Entry.new
+      enterprise: Gtk::Entry.new,
+      department: Gtk::Entry.new,
+      group: Gtk::Entry.new,
+      lab: Gtk::Entry.new,
+      fio: Gtk::Entry.new,
+      position: Gtk::Entry.new
+    }
+
+    dictionary = {
+      enterprise: "Предприятие",
+      department: "Департамент",
+      group: "Отдел/Группа",
+      lab: "Лаборатория",
+      fio: "ФИО",
+      position: "Должность"
     }
 
     row = 0
     details_fields.each do |label_text, widget|
-      label = Gtk::Label.new(label_text)
+      localized_label = dictionary[label_text]
+      label = Gtk::Label.new(localized_label.to_s)
       widget.editable = false
       widget.can_focus = false
       grid.attach(label, 0, row, 1, 1)
@@ -158,18 +168,6 @@ class GUI
     hbox.pack_start(grid, expand: true, fill: true, padding: 10)
     hbox.pack_start(photo_box, expand: false, fill: false, padding: 10)
 
-# #{    # Add search button action
-#      search_button.signal_connect('clicked') do
-#       search = [enterprise_combo.active_text, subdivision_combo.active_text, fio_entry.text]
-#       res = db.search_employee(search)
-#
-#       if res.any?
-#         details_fields.each { |key, value| value.text = res[0]['enterprise'] }
-#       else
-#         puts "No results found"
-#       end
-#     end
-# }
     search_button.signal_connect('clicked') do
       # Gather the search input values from the ComboBoxes and Entries
       fio_value = fio_entry.text.empty? ? nil : fio_entry.text
@@ -179,31 +177,28 @@ class GUI
       lab_value = lab_combo.active_text == "Лаборатория" ? nil : lab_combo.active_text
       position_value = "" # If there's an entry for position, fetch its text or set it to nil
       corp_inner_tel_value = work_phone_entry.text.empty? ? nil : work_phone_entry.text.to_i
-      inner_tel_value = nil # Add a field for internal_tel if needed and extract its value
 
       # Call the search_employee method with the gathered values
       res = @db.search_employee(
-        fio_value,
         enterprise_value,
         subdivision_value,
         department_value,
         lab_value,
-        position_value,
-        corp_inner_tel_value,
-        inner_tel_value
+        fio_value,
+        corp_inner_tel_value
       )
 
       # Populate the details fields with the result if available
       if res.any?
-        details_fields["Предприятие"].text = res[0]["enterprise"] || ""
-        details_fields["Подразделение"].text = res[0]["department"] || ""
-        details_fields["Отдел/Группа"].text = res[0]["group"] || ""
-        details_fields["Лаборатория"].text = res[0]["lab"] || ""
-        details_fields["ФИО/Служба"].text = res[0]["fio"] || ""
-        details_fields["Должность"].text = res[0]["position"] || ""
+        details_fields[:enterprise]&.text = res[0]["enterprise"] || ""
+        details_fields[:department]&.text = res[0]["department"] || ""
+        details_fields[:group]&.text = res[0]["group"] || ""
+        details_fields[:lab]&.text = res[0]["lab"] || ""
+        details_fields[:fio]&.text = res[0]["fio"] || ""
+        details_fields[:position]&.text = res[0]["position"] || ""
         # Fill in other fields like phones, fax, etc., based on the result.
       else
-        puts "No results found"
+        puts "No results found."
       end
     end
 

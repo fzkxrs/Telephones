@@ -25,24 +25,23 @@ class Database
   end
 
   # Search employee by multiple criteria
-  def search_employee(fio, enterprise, department, group, lab, position, email, address)
+  def search_employee(enterprise, department, group, lab, fio, tel)
     # Query the database
     query = <<-SQL
-      SELECT enterprise, department 
-      FROM #{@data_table_name}
-      WHERE 
-        fio = $1 OR 
-        enterprise = $2 OR
-        department = $3 OR
-        "group" = $4 OR
-        lab = $5 OR
-        position = $6 OR
-        email = $7 OR
-        address = $8
-      ORDER BY enterprise ASC;
-    SQL
+    SELECT enterprise, department 
+    FROM #{@data_table_name}
+    WHERE 
+      (inner_tel = $6 OR corp_inner_tel = $6) OR (
+        enterprise = $1 AND
+        department = $2 AND
+        "group" = $3 AND
+        lab = $4 AND
+        fio = $5
+      )
+    ORDER BY enterprise ASC;
+  SQL
 
-    execute_query(query, fio, enterprise, department, group, lab, position, email, address)
+    execute_query(query, enterprise, department, group, lab, fio, tel)
   end
 
   def test_connection

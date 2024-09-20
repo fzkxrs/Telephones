@@ -14,7 +14,7 @@ db = Database.new(db_config)
 db.test_connection
 
 # Test search
-res = db.search_employee('John Doe', 'Some Enterprise', 'IT', 'Software', 'Lab A', 'Engineer', 'john@example.com', '123 Street')
+res = db.search_employee( 'Some Enterprise', 'IT', 'Software', 'Lab A', 'John Doe', '1001',)
 if res
   res.each do |row|
     puts "Found: #{row['enterprise']}, #{row['department']}"
