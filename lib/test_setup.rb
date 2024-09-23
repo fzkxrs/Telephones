@@ -23,4 +23,5 @@ else
   puts "No results found."
 end
 db.open_connection
-db.clear_test_data
+# Uncomment on release
+# db.clear_test_data

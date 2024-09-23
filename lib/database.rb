@@ -33,60 +33,78 @@ class Database
   end
 
   # Search employee by multiple criteria
-  def search_employee(enterprise, department, group, lab, fio, tel)
+  def search_employee(enterprise, subdivision, department, lab, fio, tel)
     # Query the database
     if tel && fio
       enterprise = nil
+      subdivision = nil
       department = nil
-      group = nil
       lab = nil
     end
     if tel
       enterprise = nil
+      subdivision = nil
       department = nil
-      group = nil
       lab = nil
       fio = nil
     end
     if fio
-      enterprise = nil
-      department = nil
-      group = nil
-      lab = nil
       tel = nil
     end
     query = <<-SQL
-      SELECT 
-        d.enterprise, 
-        d.department, 
-        d."group", 
-        d.lab, 
-        d.fio, 
-        d.position, 
-        d.corp_inner_tel, 
-        d.inner_tel, 
-        d.email, 
-        d.address, 
-        p.phone, 
-        p.fax, 
-        p.modem, 
-        p.mg
-      FROM #{@data_table_name} AS d
-      LEFT JOIN #{@phones_table_name} AS p ON d.id = p.id
-      WHERE 
-        (d.inner_tel = $6 OR d.corp_inner_tel = $6)
-        OR (d.fio = $5) 
-        OR (
-          d.enterprise = $1 AND
-          d.department = $2 AND
-          d."group" = $3 AND
-          d.lab = $4 AND
-          d.fio = $5
-        )
-      ORDER BY d.enterprise ASC;
+    SELECT 
+      d.enterprise, 
+      d.subdivision, 
+      d.department, 
+      d.lab, 
+      d.fio, 
+      d.position, 
+      d.corp_inner_tel, 
+      d.inner_tel, 
+      d.email, 
+      d.address, 
+      p.phone, 
+      p.fax, 
+      p.modem, 
+      p.mg
+    FROM #{@data_table_name} AS d
+    LEFT JOIN #{@phones_table_name} AS p ON d.id = p.id
+    WHERE 
+      (d.inner_tel = CAST($6 AS INTEGER) OR d.corp_inner_tel = CAST($6 AS INTEGER))
+      OR (d.fio = $5)
+      OR (
+        d.enterprise = $1 AND
+        d.subdivision = $2 AND
+        d.department = $3 AND
+        d.lab = $4 AND
+        d.fio LIKE $5
+      )
+    ORDER BY d.enterprise ASC;
     SQL
 
-    execute_query(query, enterprise, department, group, lab, fio, tel)
+    # Modify fio to add wildcard characters for partial matching
+    fio = "%#{fio}%" unless fio.nil? || fio.empty?
+
+    execute_query(query, enterprise, subdivision, department, lab, fio, tel)
+  end
+
+  def search_by(param)
+    query = <<-SQL
+        SELECT DISTINCT #{param} FROM #{@data_table_name};
+    SQL
+    result = execute_query(query)
+    result = result.map { |row| row[param] } if result
+    result
+  end
+
+  def search_by_arg(param, arg, value)
+    query = <<-SQL
+      SELECT DISTINCT #{param} FROM #{@data_table_name}
+      WHERE "#{arg}" = $1
+    SQL
+    result = execute_query(query, value) # Pass the value as a parameter
+    result = result.map { |row| row[param] } if result
+    result
   end
 
   private
@@ -97,7 +115,11 @@ class Database
     open_connection
     if @connection
       begin
-        result = @connection.exec_params(query, args)
+        if args.empty?
+          result = @connection.exec_params(query)
+        else
+          result = @connection.exec_params(query, args)
+        end
         return result
       rescue PG::Error => e
         puts "Database error: #{e.message}"
