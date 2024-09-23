@@ -85,8 +85,8 @@ class GUI
     # Labels and entries for right side fields
     details_fields = {
       enterprise: Gtk::Entry.new,
+      subdivision: Gtk::Entry.new,
       department: Gtk::Entry.new,
-      group: Gtk::Entry.new,
       lab: Gtk::Entry.new,
       fio: Gtk::Entry.new,
       position: Gtk::Entry.new,
