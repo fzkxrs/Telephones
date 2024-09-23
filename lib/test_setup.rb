@@ -1,16 +1,16 @@
-require_relative './database'
+require_relative './test_database'
 require 'yaml'
 
 db_config_path = File.expand_path('../config/database.yml', __dir__)
 db_config = YAML.load_file(db_config_path)['test']
-db = Database.new(db_config)
+db = TestDatabase.new(db_config)
 
 # Setup test data
 db.setup_test_data
 puts "Test data loaded successfully!"
 
 # Ensure the connection is correct before running any query
-db = Database.new(db_config)
+db = TestDatabase.new(db_config)
 db.test_connection
 
 # Test search

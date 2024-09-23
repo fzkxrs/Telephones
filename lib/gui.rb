@@ -25,6 +25,7 @@ class GUI
     # Enterprise Label and ComboBox
     enterprise_label = Gtk::Label.new("Предприятие")
     enterprise_combo = Gtk::ComboBoxText.new
+
     enterprises = ["", "Компания A", "Компания B", "Компания C"] # Example values
     enterprises.each { |enterprise| enterprise_combo.append_text(enterprise) }
     vbox_left.pack_start(enterprise_label, expand: false, fill: false, padding: 0)

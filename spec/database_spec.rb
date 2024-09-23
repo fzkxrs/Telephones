@@ -1,4 +1,4 @@
-require_relative '../lib/database'
+require_relative '../lib/test_database'
 
 RSpec.describe Database do
   let(:db_config) { YAML.load_file('config/database.yml')['test'] }
