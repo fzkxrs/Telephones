@@ -37,10 +37,52 @@ class GUI
     vbox_left.pack_start(subdivision_label, expand: false, fill: false, padding: 0)
     vbox_left.pack_start(subdivision_combo, expand: false, fill: false, padding: 10)
 
+
+    # Department Label and ComboBox
+    department_label = Gtk::Label.new("Отдел/Группа")
+    department_combo = Gtk::ComboBoxText.new
+    department_combo.sensitive = false
+    vbox_left.pack_start(department_label, expand: false, fill: false, padding: 0)
+    vbox_left.pack_start(department_combo, expand: false, fill: false, padding: 10)
+
+    # Lab Label and ComboBox
+    lab_label = Gtk::Label.new("Лаборатория")
+    lab_combo = Gtk::ComboBoxText.new
+    lab_combo.sensitive = false
+    vbox_left.pack_start(lab_label, expand: false, fill: false, padding: 0)
+    vbox_left.pack_start(lab_combo, expand: false, fill: false, padding: 10)
+
+    department_combo.signal_connect('changed') do
+      lab_combo.remove_all
+      # Enable subdivision_combo when an enterprise is selected
+      if department_combo.active_text && !department_combo.active_text.empty?
+        labs = db.search_by_arg("lab", "department", department_combo.active_text).append("")
+        labs.each { |lab| lab_combo.append_text(lab) }
+        lab_combo.sensitive = true # Enable the lab combo
+      else
+        lab_combo.sensitive = false
+      end
+    end
+
+    subdivision_combo.signal_connect('changed') do
+      department_combo.remove_all
+      lab_combo.remove_all
+      # Enable department_combo when an enterprise is selected
+      if subdivision_combo.active_text && !subdivision_combo.active_text.empty?
+        departments = db.search_by_arg("department", "subdivision", subdivision_combo.active_text).append("")
+        departments.each { |department| department_combo.append_text(department) }
+        department_combo.sensitive = true # Enable the department combo
+      else
+        department_combo.sensitive = false
+      end
+    end
+
     enterprise_combo.signal_connect('changed') do
+      subdivision_combo.remove_all
+      department_combo.remove_all
+      lab_combo.remove_all
       # Enable subdivision_combo when an enterprise is selected
       if enterprise_combo.active_text && !enterprise_combo.active_text.empty?
-        subdivision_combo.remove_all
         subdivisions = db.search_by_arg("subdivision", "enterprise", enterprise_combo.active_text).append("")
         subdivisions.each { |subdivision| subdivision_combo.append_text(subdivision) }
         subdivision_combo.sensitive = true # Enable the subdivision combo
@@ -48,22 +90,6 @@ class GUI
         subdivision_combo.sensitive = false
       end
     end
-
-    # Department Label and ComboBox
-    department_label = Gtk::Label.new("Отдел/Группа")
-    department_combo = Gtk::ComboBoxText.new
-    departments = ["", "Отдел 1", "Группа 1", "Отдел 2"] # Example values
-    departments.each { |department| department_combo.append_text(department) }
-    vbox_left.pack_start(department_label, expand: false, fill: false, padding: 0)
-    vbox_left.pack_start(department_combo, expand: false, fill: false, padding: 10)
-
-    # Lab Label and ComboBox
-    lab_label = Gtk::Label.new("Лаборатория")
-    lab_combo = Gtk::ComboBoxText.new
-    labs = ["", "Лаборатория 1", "Лаборатория 2", "Лаборатория 3"] # Example values
-    labs.each { |lab| lab_combo.append_text(lab) }
-    vbox_left.pack_start(lab_label, expand: false, fill: false, padding: 0)
-    vbox_left.pack_start(lab_combo, expand: false, fill: false, padding: 10)
 
     # Other fields (FIO, phone number, etc.)
     fio_entry = Gtk::Entry.new
