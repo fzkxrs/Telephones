@@ -33,33 +33,26 @@ class Database
   end
 
   # Search employee by multiple criteria
-  def search_employee(enterprise, department, group, lab, fio, tel)
+  def search_employee(enterprise, subdivision, department, lab, fio, tel)
     # Query the database
-    if tel && fio
+    if (tel && fio) || fio
       enterprise = nil
+      subdivision = nil
       department = nil
-      group = nil
       lab = nil
     end
     if tel
       enterprise = nil
+      subdivision = nil
       department = nil
-      group = nil
       lab = nil
       fio = nil
-    end
-    if fio
-      enterprise = nil
-      department = nil
-      group = nil
-      lab = nil
-      tel = nil
     end
     query = <<-SQL
       SELECT 
         d.enterprise, 
+        d.subdivision, 
         d.department, 
-        d."group", 
         d.lab, 
         d.fio, 
         d.position, 
@@ -75,18 +68,37 @@ class Database
       LEFT JOIN #{@phones_table_name} AS p ON d.id = p.id
       WHERE 
         (d.inner_tel = $6 OR d.corp_inner_tel = $6)
-        OR (d.fio = $5) 
-        OR (
+        OR (d.fio = $5) OR
+        (
           d.enterprise = $1 AND
-          d.department = $2 AND
-          d."group" = $3 AND
+          d.subdivision = $2 AND
+          d.department = $3 AND
           d.lab = $4 AND
           d.fio = $5
         )
       ORDER BY d.enterprise ASC;
     SQL
 
-    execute_query(query, enterprise, department, group, lab, fio, tel)
+    execute_query(query, enterprise, subdivision, department, lab, fio, tel)
+  end
+
+  def search_by(param)
+    query = <<-SQL
+        SELECT DISTINCT #{param} FROM #{@data_table_name};
+    SQL
+    result = execute_query(query)
+    result = result.map { |row| row[param] } if result
+    result
+  end
+
+  def search_by_arg(param, arg, value)
+    query = <<-SQL
+      SELECT DISTINCT #{param} FROM #{@data_table_name}
+      WHERE "#{arg}" = $1
+  SQL
+    result = execute_query(query, value) # Pass the value as a parameter
+    result = result.map { |row| row[param] } if result
+    result
   end
 
   private
@@ -97,7 +109,11 @@ class Database
     open_connection
     if @connection
       begin
-        result = @connection.exec_params(query, args)
+        if args.empty?
+          result = @connection.exec_params(query)
+        else
+          result = @connection.exec_params(query, args)
+        end
         return result
       rescue PG::Error => e
         puts "Database error: #{e.message}"

@@ -25,8 +25,7 @@ class GUI
     # Enterprise Label and ComboBox
     enterprise_label = Gtk::Label.new("Предприятие")
     enterprise_combo = Gtk::ComboBoxText.new
-
-    enterprises = ["", "Компания A", "Компания B", "Компания C"] # Example values
+    enterprises = db.search_by("enterprise").append("")
     enterprises.each { |enterprise| enterprise_combo.append_text(enterprise) }
     vbox_left.pack_start(enterprise_label, expand: false, fill: false, padding: 0)
     vbox_left.pack_start(enterprise_combo, expand: false, fill: false, padding: 10)
@@ -34,10 +33,21 @@ class GUI
     # Subdivision Label and ComboBox
     subdivision_label = Gtk::Label.new("Подразделение")
     subdivision_combo = Gtk::ComboBoxText.new
-    subdivisions = ["", "Подразделение 1", "Подразделение 2", "Подразделение 3"] # Example values
-    subdivisions.each { |subdivision| subdivision_combo.append_text(subdivision) }
+    subdivision_combo.sensitive = false # Initially set subdivision combo to insensitive
     vbox_left.pack_start(subdivision_label, expand: false, fill: false, padding: 0)
     vbox_left.pack_start(subdivision_combo, expand: false, fill: false, padding: 10)
+
+    enterprise_combo.signal_connect('changed') do
+      # Enable subdivision_combo when an enterprise is selected
+      if enterprise_combo.active_text && !enterprise_combo.active_text.empty?
+        subdivision_combo.remove_all
+        subdivisions = db.search_by_arg("subdivision", "enterprise", enterprise_combo.active_text).append("")
+        subdivisions.each { |subdivision| subdivision_combo.append_text(subdivision) }
+        subdivision_combo.sensitive = true # Enable the subdivision combo
+      else
+        subdivision_combo.sensitive = false
+      end
+    end
 
     # Department Label and ComboBox
     department_label = Gtk::Label.new("Отдел/Группа")
@@ -88,8 +98,8 @@ class GUI
 
     dictionary = {
       enterprise: "Предприятие",
-      department: "Департамент",
-      group: "Отдел/Группа",
+      subdivision: "Департамент",
+      department: "Отдел/Группа",
       lab: "Лаборатория",
       fio: "ФИО",
       position: "Должность",
@@ -175,8 +185,8 @@ class GUI
       # Populate the details fields with the result if available
       if res&.any?
         details_fields[:enterprise]&.text = res[0]["enterprise"] || ""
+        details_fields[:subdivision]&.text = res[0]["subdivision"] || ""
         details_fields[:department]&.text = res[0]["department"] || ""
-        details_fields[:group]&.text = res[0]["group"] || ""
         details_fields[:lab]&.text = res[0]["lab"] || ""
         details_fields[:fio]&.text = res[0]["fio"] || ""
         details_fields[:position]&.text = res[0]["position"] || ""
@@ -206,6 +216,8 @@ class GUI
     @window.add(hbox)
     @window.signal_connect("destroy") { Gtk.main_quit }
   end
+
+  public
 
   def run
     @window.show_all

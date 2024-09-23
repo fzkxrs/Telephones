@@ -10,11 +10,11 @@ class TestDatabase < Database
   def setup_test_data
     open_connection
     test_employees = [
-      { fio: 'John Doe', enterprise: 'Some Enterprise', department: 'IT', group: 'Software', lab: 'Lab A',
+      { fio: 'John Doe', enterprise: 'Some Enterprise', subdivision: 'IT', department: 'Software', lab: 'Lab A',
         position: 'Engineer', email: 'john@example.com', address: '123 Street', corp_inner_tel: 1001, inner_tel: 2001,
         phones: [{ phone: 5551001, fax: 1111, modem: 2222, mg: 3333 }]
       },
-      { fio: 'Jane Smith', enterprise: 'Other Enterprise', department: 'HR', group: 'Admin', lab: 'Lab B',
+      { fio: 'Jane Smith', enterprise: 'Other Enterprise', subdivision: 'HR', department: 'Admin', lab: 'Lab B',
         position: 'Manager', email: 'jane@example.com', address: '456 Avenue', corp_inner_tel: 1002, inner_tel: 2002,
         phones: [{ phone: 5551002, fax: 1112, modem: 2223, mg: 3334 }]
       }
@@ -24,11 +24,11 @@ class TestDatabase < Database
       @connection.transaction do |conn|
         test_employees.each do |employee|
           # Define the SQL query for inserting into the 'data' table
-          insert_data_sql = 'INSERT INTO ' + @data_table_name + ' (fio, enterprise, department, "group", lab, position, email, address, corp_inner_tel, inner_tel) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;'
+          insert_data_sql = 'INSERT INTO ' + @data_table_name + ' (fio, enterprise, subdivision, department, lab, position, email, address, corp_inner_tel, inner_tel) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;'
 
           # Execute the query and retrieve the employee ID
           data_result = conn.exec_params(insert_data_sql, [
-            employee[:fio], employee[:enterprise], employee[:department], employee[:group],
+            employee[:fio], employee[:enterprise], employee[:subdivision], employee[:department],
             employee[:lab], employee[:position], employee[:email], employee[:address],
             employee[:corp_inner_tel], employee[:inner_tel]
           ])
