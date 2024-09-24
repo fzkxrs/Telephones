@@ -1,3 +1,2 @@
-.idea/**
+./idea/**
 Gemfile.lock
-Telephones.iml

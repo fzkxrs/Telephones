@@ -107,6 +107,13 @@ class Database
     result
   end
 
+  def get_stored_password_for(username)
+    # Replace this with a real database query to retrieve the hashed password
+    query = "SELECT password_hash FROM users WHERE username = $1"
+    result = db.execute_query(query, username)
+    result[0]['password_hash'] if result.any?
+  end
+
   private
 
   # Method to execute SQL query and return result

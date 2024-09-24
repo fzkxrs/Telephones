@@ -1,16 +1,16 @@
 require 'gtk3'
-require_relative './database'
+require_relative 'database'
+require_relative 'auth_util'
 
 class GUI
   def initialize(db)
+    @auth = AuthUtil.new(db)
     @window = Gtk::Window.new("Телефоны ОАО \"Обеспечение РФЯЦ-ВНИИЭФ\" и ДЗО")
     @window.set_default_size(800, 400)
     @window.set_border_width(10)
-    @window.set_margin_top(10)
-    @window.set_margin_bottom(10)
-    @window.set_margin_start(10)
-    @window.set_margin_end(10)
     @db = db
+
+    @window.signal_connect("key_press_event") { |widget, event| @auth.on_key_press(widget, event) }
 
     # Main layout container (Horizontal Box)
     hbox = Gtk::Box.new(:horizontal, 10)
