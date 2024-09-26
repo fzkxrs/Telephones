@@ -1,6 +1,6 @@
 require 'rake'
 require 'active_record'
-require_relative 'lib/database'
+require_relative 'lib/modules/_utils'
 
 namespace :db do
   desc "Migrate the database"

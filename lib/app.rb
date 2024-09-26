@@ -1,7 +1,7 @@
 require 'yaml'
-require_relative './gui'
-require_relative './database'
-require_relative './test_database'
+require_relative 'gui'
+require_relative 'database'
+require_relative 'test_database'
 
 db_config = YAML.load_file('config/database.yml')['development']
 db = Database.new(db_config)
