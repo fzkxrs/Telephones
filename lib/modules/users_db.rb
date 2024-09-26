@@ -1,6 +1,12 @@
 require 'bcrypt'
 
-class Users
+module UsersDb
+  def initialize
+    super
+  end
+
+  public
+
   def create_user(username, password)
     password_hash = BCrypt::Password.create(password)
     query = <<-SQL

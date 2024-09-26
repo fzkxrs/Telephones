@@ -1,6 +1,8 @@
 require 'pg'
+require_relative 'modules/users_db'
 
 class Database
+  include UsersDb
   attr_reader :connection
 
   def initialize(db_config)
@@ -10,6 +12,7 @@ class Database
     @host = db_config['host']
     @data_table_name = "employees.data"
     @phones_table_name = "employees.phones"
+    @users_table_name = "employees.users"
 
     # Establish connection when initializing the class
     @connection = PG.connect(dbname: @dbname, user: @user, password: @password, host: @host)
@@ -109,12 +112,19 @@ class Database
 
   def get_stored_password_for(username)
     # Replace this with a real database query to retrieve the hashed password
-    query = "SELECT password_hash FROM users WHERE username = $1"
+    query = "SELECT password_hash FROM #{@users_table_name} WHERE username = $1"
     result = db.execute_query(query, username)
     result[0]['password_hash'] if result.any?
   end
 
-  private
+  def set_stored_password_for(username, password_hash)
+    # Replace this with a real database query to retrieve the hashed password
+    query = "SELECT password_hash FROM #{@users_table_name} WHERE username = $1"
+    result = db.execute_query(query, username)
+    result[0]['password_hash'] if result.any?
+  end
+
+  protected
 
   # Method to execute SQL query and return result
   def execute_query(query, *args)
@@ -132,14 +142,14 @@ class Database
         puts "Database error: #{e.message}"
         return nil
       ensure
-        close
+        close_connection
       end
     else
       puts "Connection is nil. Could not execute the query."
     end
   end
 
-  def close
+  def close_connection
     @connection.close if @connection
   end
 end
