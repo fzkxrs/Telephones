@@ -80,18 +80,31 @@ class AuthUtils
             parent: @window,
             flags: :destroy_with_parent,
             type: :info,
-            buttons_type: :close_connection,
+            buttons_type: :close,
             message: "Введённные пароли не совпадают"
           )
           dialog.run
         else
           username = username_entry.text
           password = password_entry.text
-          if @db.authenticate_user(username, password)
-            puts "Logged in successfully!"
-            # Here, update your application's UI for logged-in users
+          if @db.create_user(username, password)
+            dialog = Gtk::MessageDialog.new(
+              parent: @window,
+              flags: :destroy_with_parent,
+              type: :info,
+              buttons_type: :close,
+              message: "Успешный вход в систему!"
+            )
+            dialog.run
           else
-            puts "Invalid credentials."
+            dialog = Gtk::MessageDialog.new(
+              parent: @window,
+              flags: :destroy_with_parent,
+              type: :info,
+              buttons_type: :close,
+              message: "Пользователь уже существует"
+            )
+            dialog.run
           end
         end
         dialog.destroy
