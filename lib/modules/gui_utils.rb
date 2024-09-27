@@ -51,6 +51,7 @@ module GuiUtils
         subdivision_combo.sensitive = false
       end
     end
+
     search_button.signal_connect('clicked') do
       # Gather the search input values from the ComboBoxes and Entries
       fio_value = fio_entry.text.empty? ? nil : fio_entry.text
