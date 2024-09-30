@@ -122,15 +122,6 @@ class GUI
     row += 1
 
     # Entries for phone numbers (Phone/Fax/Modem/Mgr)
-    phone_entry = Gtk::Entry.new
-    fax_entry = Gtk::Entry.new
-    modem_entry = Gtk::Entry.new
-    mgr_entry = Gtk::Entry.new
-    grid.attach(phone_entry, 1, row, 1, 1)
-    grid.attach(fax_entry, 2, row, 1, 1)
-    grid.attach(modem_entry, 3, row, 1, 1)
-    grid.attach(mgr_entry, 4, row, 1, 1)
-    row += 1
 
     # Photo placeholder
     photo_box = Gtk::DrawingArea.new
@@ -151,22 +142,34 @@ class GUI
     hbox.pack_start(grid, expand: true, fill: true, padding: 10)
     hbox.pack_start(photo_box, expand: false, fill: false, padding: 10)
 
-    @window.add(hbox)
-    @window.signal_connect("destroy") { Gtk.main_quit }
+    # Create a scrollable area for phone entries
+    scrolled_window = Gtk::ScrolledWindow.new
+    scrolled_window.set_policy(:automatic, :automatic)
+    scrolled_window.set_min_content_height(100) # Adjust this value for the desired height
+    scrolled_window.set_min_content_width(800)  # Adjust this value for the desired width
+
+    # Create a box to hold the dynamic entries for phone numbers
+    phones_vbox = Gtk::Box.new(:vertical, 5)
+
+    scrolled_window.add(phones_vbox)
+    grid.attach(scrolled_window, 1, row, 4, 1)
+    grid.show_all
+
     super(department_combo,
           lab_combo,
           subdivision_combo,
           enterprise_combo,
           search_button,
           details_fields,
-          phone_entry,
-          fax_entry,
-          modem_entry,
-          mgr_entry,
           fio_entry,
           work_phone_entry,
+          grid,
+          row,
           db
     )
+
+    @window.add(hbox)
+    @window.signal_connect("destroy") { Gtk.main_quit }
   end
 
   public
