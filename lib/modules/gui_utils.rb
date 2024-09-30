@@ -5,12 +5,10 @@ module GuiUtils
                  enterprise_combo,
                  search_button,
                  details_fields,
-                 phone_entry,
-                 fax_entry,
-                 modem_entry,
-                 mgr_entry,
                  fio_entry,
                  work_phone_entry,
+                 grid,
+                 row,
                  db
   )
     department_combo.signal_connect('changed') do
@@ -72,6 +70,11 @@ module GuiUtils
         corp_inner_tel_value
       )
 
+      # Clear previous phone/fax/modem/mgr entries if any
+      grid.children.each do |child|
+        grid.remove(child) if child.is_a?(Gtk::ScrolledWindow)
+      end
+
       # Populate the details fields with the result if available
       if res&.any?
         details_fields[:enterprise]&.text = res[0]["enterprise"] || ""
@@ -84,11 +87,44 @@ module GuiUtils
         details_fields[:inner_tel]&.text = res[0]["inner_tel"] || ""
         details_fields[:email]&.text = res[0]["email"] || ""
         details_fields[:address]&.text = res[0]["address"] || ""
-        phone_entry.text = res[0]["phone"]
-        fax_entry.text = res[0]["fax"]
-        modem_entry.text = res[0]["phone"]
-        mgr_entry.text = res[0]["phone"]
-        # Fill in other fields like phones, fax, etc., based on the result.
+
+        # Create a scrollable area for phone entries
+        scrolled_window = Gtk::ScrolledWindow.new
+        scrolled_window.set_policy(:automatic, :automatic)
+        scrolled_window.set_min_content_height(100) # Adjust this value for the desired height
+        scrolled_window.set_min_content_width(800)  # Adjust this value for the desired width
+
+        # Create a box to hold the dynamic entries for phone numbers
+        phones_vbox = Gtk::Box.new(:vertical, 5)
+
+        res.each do |phone_entry_data|
+          phone_entry = Gtk::Entry.new
+          phone_entry.text = phone_entry_data["phone"].to_s
+          fax_entry = Gtk::Entry.new
+          fax_entry.text = phone_entry_data["fax"].to_s
+          modem_entry = Gtk::Entry.new
+          modem_entry.text = phone_entry_data["modem"].to_s
+          mgr_entry = Gtk::Entry.new
+          mgr_entry.text = phone_entry_data["mg"].to_s
+
+          # Add each set of entries as a row
+          row_box = Gtk::Box.new(:horizontal, 10)
+          row_box.pack_start(phone_entry, expand: true, fill: true, padding: 5)
+          row_box.pack_start(fax_entry, expand: true, fill: true, padding: 5)
+          row_box.pack_start(modem_entry, expand: true, fill: true, padding: 5)
+          row_box.pack_start(mgr_entry, expand: true, fill: true, padding: 5)
+
+          phones_vbox.pack_start(row_box, expand: false, fill: false, padding: 5)
+        end
+
+        # Add the vbox containing entries to the scrolled window
+        scrolled_window.add(phones_vbox)
+
+        # Add the scrolled window to the main grid
+        grid.attach(scrolled_window, 1, row, 4, 1) # Attach across 4 columns
+        row += 1
+
+        grid.show_all  # Update and show everything in the grid
       else
         # Display a message dialog to inform the user
         dialog = Gtk::MessageDialog.new(
@@ -96,7 +132,7 @@ module GuiUtils
           flags: :destroy_with_parent,
           type: :info,
           buttons_type: :close,
-          message: "Не найдено совпадений по номеру телефона, фио или подразделениям"
+          message: "Не найдено совпадений по номеру телефона, ФИО или подразделениям"
         )
         dialog.run
         dialog.destroy

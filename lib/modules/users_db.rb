@@ -11,7 +11,7 @@ module UsersDb
     INSERT INTO #{@users_table_name} (username, password_hash, role) VALUES ($1, $2, 'admin')
     SQL
     res = execute_query(query, username, password_hash)
-    if res != nil ? true : false; end
+    res != nil ? true : false
   end
 
   def authenticate_user(username, password)

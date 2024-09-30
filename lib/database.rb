@@ -124,7 +124,7 @@ class Database
     result[0]['password_hash'] if result.any?
   end
 
-  protected
+  private
 
   # Method to execute SQL query and return result
   def execute_query(query, *args)
