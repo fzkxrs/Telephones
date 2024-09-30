@@ -99,43 +99,43 @@ class Auth
     dialog.signal_connect('response') do |_, response|
       if response == Gtk::ResponseType::OK
         if password_entry.text != password_entry_check.text
-          dialog = Gtk::MessageDialog.new(
+          error_dialog = Gtk::MessageDialog.new(
             parent: @window,
             flags: :destroy_with_parent,
             type: :info,
             buttons_type: :close,
             message: "Введённные пароли не совпадают"
           )
-          dialog.run
+          error_dialog.run
+          error_dialog.destroy
         else
           username = username_entry.text
           password = password_entry.text
           condition = @db.create_user(username, password)
-          if condition
-            dialog = Gtk::MessageDialog.new(
+          if !condition
+            success_dialog = Gtk::MessageDialog.new(
               parent: @window,
               flags: :destroy_with_parent,
               type: :info,
               buttons_type: :close,
               message: "Регистрация прошла успешно"
             )
-            dialog.run
+            success_dialog.run
+            success_dialog.destroy
           else
-            dialog = Gtk::MessageDialog.new(
+            error_dialog = Gtk::MessageDialog.new(
               parent: @window,
               flags: :destroy_with_parent,
               type: :info,
               buttons_type: :close,
-              message: "Пользователь уже существует либо данные указаны неверно"
+              message: "Пользователь уже существует"
             )
-            dialog.run
+            error_dialog.run
+            error_dialog.destroy
           end
         end
-        dialog.destroy
-      elsif response == Gtk::ResponseType::CANCEL
-        dialog.run
-        dialog.destroy
       end
+      dialog.destroy if response == Gtk::ResponseType::CANCEL || response == Gtk::ResponseType::OK
     end
   end
 

@@ -1,17 +1,20 @@
 require 'bcrypt'
 
 module UsersDb
-  @role_default = "moderator"
-  @users_table_name = "employees.users"
+  attr_reader :default_role
+  def initialize
+    @users_table_name = "employees.users"
+  end
 
   public
 
   def create_user(username, password)
+    @default_role = "moderator"
     password_hash = BCrypt::Password.create(password)
     query = <<-SQL
     INSERT INTO #{@users_table_name} (username, password_hash, role) VALUES ($1, $2, $3)
     SQL
-    result = execute_query(query, username, password_hash, @role_default)
+    result = execute_query(query, username, password_hash, @default_role)
     result.nil?
   end
 
