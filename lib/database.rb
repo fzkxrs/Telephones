@@ -124,6 +124,17 @@ class Database
     result[0]['password_hash'] if result.any?
   end
 
+  # Add method to update the entry
+  def update_entry(entry_data)
+    # Here, implement logic to update the row in the database with new `entry_data`
+    # Example: UPDATE `data` SET `field1` = 'value1', ... WHERE `id` = entry_data[:id]
+  end
+
+  # Add method to delete the entry
+  def delete_entry(id)
+    # Example: DELETE FROM `data` WHERE id = id
+  end
+
   private
 
   # Method to execute SQL query and return result

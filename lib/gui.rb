@@ -71,6 +71,18 @@ class GUI
     grid.column_spacing = 10
     grid.row_spacing = 5
 
+    # Create moderator buttons (Save and Delete for admin)
+    save_button = Gtk::Button.new(label: "Сохранить")
+    delete_button = Gtk::Button.new(label: "Удалить")
+
+    save_button.sensitive = false
+    delete_button.sensitive = false # Only admins can delete
+
+    # Create a box for the buttons
+    hbox_buttons = Gtk::Box.new(:horizontal, 10)
+    hbox_buttons.pack_start(save_button, expand: true, fill: true, padding: 10)
+    hbox_buttons.pack_start(delete_button, expand: true, fill: true, padding: 10)
+
     # Labels and entries for right side fields
     details_fields = {
       enterprise: Gtk::Entry.new,
@@ -108,6 +120,13 @@ class GUI
       grid.attach(widget, 1, row, 1, 1)
       row += 1
     end
+
+    # Add event listener for the save button
+    save_button.signal_connect("clicked") { save_changes(details_fields) }
+
+    # Add event listener for the delete button (Admins only)
+    delete_button.signal_connect("clicked") { delete_entry }
+
 
     # Table for phone numbers
     phone_label = Gtk::Label.new("Телефон")
@@ -167,9 +186,71 @@ class GUI
           row,
           db
     )
+    grid.attach(hbox_buttons, 0, row + 1, 2, 1)
+
+    if @auth.logged_in?
+      if @auth.role == 'moderator' || @auth.role == 'admin'
+        save_button.sensitive = true # Moderators and Admins can save
+        enable_editable_fields(details_fields)
+      end
+
+      if @auth.role == 'admin'
+        delete_button.sensitive = true # Only Admins can delete
+      end
+    end
 
     @window.add(hbox)
     @window.signal_connect("destroy") { Gtk.main_quit }
+  end
+
+  def enable_editable_fields(details_fields)
+    details_fields.each_value do |field|
+      field.editable = true
+      field.can_focus = true
+    end
+  end
+
+  def save_changes(details_fields)
+    entry_data = details_fields.transform_values(&:text) # Collect data from fields
+    @db.update_entry(entry_data) # Update the database with the new values
+    success_dialog = Gtk::MessageDialog.new(
+      parent: @window,
+      flags: :destroy_with_parent,
+      type: :info,
+      buttons_type: :close,
+      message: "Данные успешно сохранены"
+    )
+    success_dialog.run
+    success_dialog.destroy
+  end
+
+  # Delete entry (admin only)
+  def delete_entry
+    confirm_dialog = Gtk::MessageDialog.new(
+      parent: @window,
+      flags: :destroy_with_parent,
+      type: :question,
+      buttons_type: :yes_no,
+      message: "Вы уверены, что хотите удалить запись?"
+    )
+
+    confirm_dialog.signal_connect("response") do |_, response|
+      if response == Gtk::ResponseType::YES
+        @db.delete_entry # Call your DB method to delete the entry
+        success_dialog = Gtk::MessageDialog.new(
+          parent: @window,
+          flags: :destroy_with_parent,
+          type: :info,
+          buttons_type: :close,
+          message: "Запись удалена"
+        )
+        success_dialog.run
+        success_dialog.destroy
+      end
+      confirm_dialog.destroy
+    end
+
+    confirm_dialog.run
   end
 
   public
