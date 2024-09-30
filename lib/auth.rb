@@ -1,9 +1,12 @@
-require_relative '../database'
+require_relative 'database'
 
-class AuthUtils
+class Auth
+  attr_reader :logged_in_user
+  attr_reader :role
 
   def initialize(db)
     @logged_in_user = nil # This will store the username of the logged-in user
+    @role = nil # This will store the role of the logged-in user
     @db = db
   end
 
@@ -39,15 +42,35 @@ class AuthUtils
       if response == Gtk::ResponseType::OK
         username = username_entry.text
         password = password_entry.text
-
-        if @db.authenticate_user(username, password)
-          puts "Logged in successfully!"
+        role, username = @db.authenticate_user(username, password)
+        if username
+          @logged_in_user = username
+          @role = role
+          success_dialog = Gtk::MessageDialog.new(
+            parent: @window,
+            flags: :destroy_with_parent,
+            type: :info,
+            buttons_type: :close,
+            message: "Успешный вход в систему"
+          )
+          success_dialog.run
+          success_dialog.destroy
           # Here, update your application's UI for logged-in users
         else
-          puts "Invalid credentials."
+          error_dialog = Gtk::MessageDialog.new(
+            parent: @window,
+            flags: :destroy_with_parent,
+            type: :info,
+            buttons_type: :close,
+            message: "Ошибка входа. Неверный логин или пароль"
+          )
+          error_dialog.run
+          error_dialog.destroy
         end
+      elsif response == Gtk::ResponseType::CANCEL
+        puts "Cancelled"
       end
-      dialog.destroy
+      dialog.destroy # Destroy the dialog after any response (OK or Cancel)
     end
 
     dialog.show_all
@@ -70,7 +93,7 @@ class AuthUtils
     dialog.content_area.add(password_entry_check)
 
     dialog.add_button(Gtk::Stock::OK, Gtk::ResponseType::OK)
-    dialog.add_button(Gtk::Stock::CANCEL, :cancel)
+    dialog.add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::CANCEL)
     dialog.show_all
 
     dialog.signal_connect('response') do |_, response|
@@ -87,13 +110,14 @@ class AuthUtils
         else
           username = username_entry.text
           password = password_entry.text
-          if @db.create_user(username, password)
+          condition = @db.create_user(username, password)
+          if condition
             dialog = Gtk::MessageDialog.new(
               parent: @window,
               flags: :destroy_with_parent,
               type: :info,
               buttons_type: :close,
-              message: "Успешный вход в систему!"
+              message: "Регистрация прошла успешно"
             )
             dialog.run
           else
@@ -102,11 +126,14 @@ class AuthUtils
               flags: :destroy_with_parent,
               type: :info,
               buttons_type: :close,
-              message: "Пользователь уже существует"
+              message: "Пользователь уже существует либо данные указаны неверно"
             )
             dialog.run
           end
         end
+        dialog.destroy
+      elsif response == Gtk::ResponseType::CANCEL
+        dialog.run
         dialog.destroy
       end
     end

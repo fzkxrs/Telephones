@@ -1,12 +1,12 @@
 require 'gtk3'
 require_relative 'database'
-require_relative 'modules/auth_utils'
+require_relative 'auth'
 require_relative 'modules/gui_utils'
 
 class GUI
   include GuiUtils
   def initialize(db)
-    @auth = AuthUtils.new(db)
+    @auth = Auth.new(db)
     @window = Gtk::Window.new("Телефоны ОАО \"Обеспечение РФЯЦ-ВНИИЭФ\" и ДЗО")
     @window.set_default_size(800, 400)
     @window.set_border_width(10)
