@@ -6,13 +6,10 @@ require_relative 'modules/gui_utils'
 class GUI
   include GuiUtils
   def initialize(db)
-    @auth = Auth.new(db)
     @window = Gtk::Window.new("Телефоны ОАО \"Обеспечение РФЯЦ-ВНИИЭФ\" и ДЗО")
     @window.set_default_size(800, 400)
     @window.set_border_width(10)
     @db = db
-
-    @window.signal_connect("key_press_event") { |widget, event| @auth.on_key_press(widget, event) }
 
     # Main layout container (Horizontal Box)
     hbox = Gtk::Box.new(:horizontal, 10)
@@ -173,6 +170,8 @@ class GUI
     scrolled_window.add(phones_vbox)
     grid.attach(scrolled_window, 1, row, 4, 1)
     grid.show_all
+    phone_entries = []
+    @auth = Auth.new(db, details_fields, phone_entries, save_button, delete_button)
 
     super(department_combo,
           lab_combo,
@@ -184,73 +183,16 @@ class GUI
           work_phone_entry,
           grid,
           row,
-          db
+          phone_entries,
+          db,
+          @auth
     )
+
     grid.attach(hbox_buttons, 0, row + 1, 2, 1)
 
-    if @auth.logged_in?
-      if @auth.role == 'moderator' || @auth.role == 'admin'
-        save_button.sensitive = true # Moderators and Admins can save
-        enable_editable_fields(details_fields)
-      end
-
-      if @auth.role == 'admin'
-        delete_button.sensitive = true # Only Admins can delete
-      end
-    end
-
+    @window.signal_connect("key_press_event") { |widget, event| @auth.on_key_press(widget, event) }
     @window.add(hbox)
     @window.signal_connect("destroy") { Gtk.main_quit }
-  end
-
-  def enable_editable_fields(details_fields)
-    details_fields.each_value do |field|
-      field.editable = true
-      field.can_focus = true
-    end
-  end
-
-  def save_changes(details_fields)
-    entry_data = details_fields.transform_values(&:text) # Collect data from fields
-    @db.update_entry(entry_data) # Update the database with the new values
-    success_dialog = Gtk::MessageDialog.new(
-      parent: @window,
-      flags: :destroy_with_parent,
-      type: :info,
-      buttons_type: :close,
-      message: "Данные успешно сохранены"
-    )
-    success_dialog.run
-    success_dialog.destroy
-  end
-
-  # Delete entry (admin only)
-  def delete_entry
-    confirm_dialog = Gtk::MessageDialog.new(
-      parent: @window,
-      flags: :destroy_with_parent,
-      type: :question,
-      buttons_type: :yes_no,
-      message: "Вы уверены, что хотите удалить запись?"
-    )
-
-    confirm_dialog.signal_connect("response") do |_, response|
-      if response == Gtk::ResponseType::YES
-        @db.delete_entry # Call your DB method to delete the entry
-        success_dialog = Gtk::MessageDialog.new(
-          parent: @window,
-          flags: :destroy_with_parent,
-          type: :info,
-          buttons_type: :close,
-          message: "Запись удалена"
-        )
-        success_dialog.run
-        success_dialog.destroy
-      end
-      confirm_dialog.destroy
-    end
-
-    confirm_dialog.run
   end
 
   public

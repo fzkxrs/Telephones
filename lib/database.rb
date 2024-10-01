@@ -37,7 +37,7 @@ class Database
 
   # Search employee by multiple criteria
   def search_employee(enterprise, subdivision, department, lab, fio, tel)
-    # Query the database
+    # Reset unnecessary fields based on conditions
     if tel && fio
       enterprise = nil
       subdivision = nil
@@ -54,41 +54,18 @@ class Database
     if fio
       tel = nil
     end
-    query = <<-SQL
-    SELECT 
-      d.enterprise, 
-      d.subdivision, 
-      d.department, 
-      d.lab, 
-      d.fio, 
-      d.position, 
-      d.corp_inner_tel, 
-      d.inner_tel, 
-      d.email, 
-      d.address, 
-      p.phone, 
-      p.fax, 
-      p.modem, 
-      p.mg
-    FROM #{@data_table_name} AS d
-    LEFT JOIN #{@phones_table_name} AS p ON d.id = p.id
-    WHERE 
-      (d.inner_tel = CAST($6 AS INTEGER) OR d.corp_inner_tel = CAST($6 AS INTEGER))
-      OR (d.fio = $5)
-      OR (
-        d.enterprise = $1 AND
-        d.subdivision = $2 AND
-        d.department = $3 AND
-        d.lab = $4 AND
-        d.fio LIKE $5
-      )
-    ORDER BY d.enterprise ASC;
-    SQL
 
-    # Modify fio to add wildcard characters for partial matching
-    fio = "%#{fio}%" unless fio.nil? || fio.empty?
+    # Add wildcard for partial fio match if applicable
+    # fio = "%#{fio}%" unless fio.nil? || fio.empty?
 
-    execute_query(query, enterprise, subdivision, department, lab, fio, tel)
+    begin
+      # Call the stored procedure
+      execute_query("SELECT * FROM fn_search_employee($1, $2, $3, $4, $5, $6);",
+                      enterprise, subdivision, department, lab, fio, tel)
+    rescue => e
+      # Handle error
+      puts "Error executing stored procedure: #{e.message}"
+    end
   end
 
   def search_by(param)
@@ -126,13 +103,17 @@ class Database
 
   # Add method to update the entry
   def update_entry(entry_data)
-    # Here, implement logic to update the row in the database with new `entry_data`
-    # Example: UPDATE `data` SET `field1` = 'value1', ... WHERE `id` = entry_data[:id]
+    query = "CALL employees.sp_update_entry($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);"
+    execute_query(query, entry_data[:id], entry_data[:enterprise], entry_data[:subdivision],
+                  entry_data[:department], entry_data[:lab], entry_data[:fio],
+                  entry_data[:position], entry_data[:corp_inner_tel], entry_data[:inner_tel],
+                  entry_data[:email], entry_data[:address])
   end
 
   # Add method to delete the entry
   def delete_entry(id)
-    # Example: DELETE FROM `data` WHERE id = id
+    query = "CALL employees.sp_delete_entry($1);"
+    execute_query(query, id)
   end
 
   private

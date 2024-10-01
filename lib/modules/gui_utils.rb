@@ -9,7 +9,9 @@ module GuiUtils
                  work_phone_entry,
                  grid,
                  row,
-                 db
+                 phone_entries,
+                 db,
+                 auth
   )
     department_combo.signal_connect('changed') do
       lab_combo.remove_all
@@ -96,16 +98,25 @@ module GuiUtils
 
         # Create a box to hold the dynamic entries for phone numbers
         phones_vbox = Gtk::Box.new(:vertical, 5)
-
         res.each do |phone_entry_data|
           phone_entry = Gtk::Entry.new
           phone_entry.text = phone_entry_data["phone"].to_s
+          phone_entry.editable = false
+          phone_entry.can_focus = false
+
           fax_entry = Gtk::Entry.new
           fax_entry.text = phone_entry_data["fax"].to_s
+          fax_entry.editable = false
+          fax_entry.can_focus = false
           modem_entry = Gtk::Entry.new
           modem_entry.text = phone_entry_data["modem"].to_s
+          modem_entry.editable = false
+          modem_entry.can_focus = false
           mgr_entry = Gtk::Entry.new
           mgr_entry.text = phone_entry_data["mg"].to_s
+          mgr_entry.editable = false
+          mgr_entry.can_focus = false
+          phone_entries.append(phone_entry, fax_entry, modem_entry, mgr_entry)
 
           # Add each set of entries as a row
           row_box = Gtk::Box.new(:horizontal, 10)
@@ -138,5 +149,49 @@ module GuiUtils
         dialog.destroy
       end
     end
+  end
+
+  # Enable editing of fields for moderators/admins
+  def save_changes(details_fields)
+    entry_data = details_fields.transform_values(&:text) # Collect data from fields
+    @db.update_entry(entry_data) # Update the database with the new values
+    success_dialog = Gtk::MessageDialog.new(
+      parent: @window,
+      flags: :destroy_with_parent,
+      type: :info,
+      buttons_type: :close,
+      message: "Данные успешно сохранены"
+    )
+    success_dialog.run
+    success_dialog.destroy
+  end
+
+  # Delete entry (admin only)
+  def delete_entry
+    confirm_dialog = Gtk::MessageDialog.new(
+      parent: @window,
+      flags: :destroy_with_parent,
+      type: :question,
+      buttons_type: :yes_no,
+      message: "Вы уверены, что хотите удалить запись?"
+    )
+
+    confirm_dialog.signal_connect("response") do |_, response|
+      if response == Gtk::ResponseType::YES
+        @db.delete_entry # Call your DB method to delete the entry
+        success_dialog = Gtk::MessageDialog.new(
+          parent: @window,
+          flags: :destroy_with_parent,
+          type: :info,
+          buttons_type: :close,
+          message: "Запись удалена"
+        )
+        success_dialog.run
+        success_dialog.destroy
+      end
+      confirm_dialog.destroy
+    end
+
+    confirm_dialog.run
   end
 end
