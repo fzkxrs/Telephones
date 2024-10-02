@@ -1,9 +1,16 @@
-require_relative '../database'
+require_relative 'database'
 
-class AuthUtils
+class Auth
+  attr_reader :logged_in_user
+  attr_reader :role
 
-  def initialize(db)
+  def initialize(db, details_fields, phone_entries, save_button, delete_button)
+    @details_fields = details_fields
+    @phone_entries = phone_entries
+    @save_button = save_button
+    @delete_button = delete_button
     @logged_in_user = nil # This will store the username of the logged-in user
+    @role = nil # This will store the role of the logged-in user
     @db = db
   end
 
@@ -39,15 +46,37 @@ class AuthUtils
       if response == Gtk::ResponseType::OK
         username = username_entry.text
         password = password_entry.text
-
-        if @db.authenticate_user(username, password)
-          puts "Logged in successfully!"
+        role, username = @db.authenticate_user(username, password)
+        if username
+          @logged_in_user = username
+          @role = role
+          success_dialog = Gtk::MessageDialog.new(
+            parent: @window,
+            flags: :destroy_with_parent,
+            type: :info,
+            buttons_type: :close,
+            message: "Успешный вход в систему"
+          )
+          enable_editable_fields
+          success_dialog.run
+          success_dialog.destroy
+          # Enable editing of fields for moderators/admins
           # Here, update your application's UI for logged-in users
         else
-          puts "Invalid credentials."
+          error_dialog = Gtk::MessageDialog.new(
+            parent: @window,
+            flags: :destroy_with_parent,
+            type: :info,
+            buttons_type: :close,
+            message: "Ошибка входа. Неверный логин или пароль"
+          )
+          error_dialog.run
+          error_dialog.destroy
         end
+      elsif response == Gtk::ResponseType::CANCEL
+        puts "Cancelled"
       end
-      dialog.destroy
+      dialog.destroy # Destroy the dialog after any response (OK or Cancel)
     end
 
     dialog.show_all
@@ -70,45 +99,49 @@ class AuthUtils
     dialog.content_area.add(password_entry_check)
 
     dialog.add_button(Gtk::Stock::OK, Gtk::ResponseType::OK)
-    dialog.add_button(Gtk::Stock::CANCEL, :cancel)
+    dialog.add_button(Gtk::Stock::CANCEL, Gtk::ResponseType::CANCEL)
     dialog.show_all
 
     dialog.signal_connect('response') do |_, response|
       if response == Gtk::ResponseType::OK
         if password_entry.text != password_entry_check.text
-          dialog = Gtk::MessageDialog.new(
+          error_dialog = Gtk::MessageDialog.new(
             parent: @window,
             flags: :destroy_with_parent,
             type: :info,
             buttons_type: :close,
             message: "Введённные пароли не совпадают"
           )
-          dialog.run
+          error_dialog.run
+          error_dialog.destroy
         else
           username = username_entry.text
           password = password_entry.text
-          if @db.create_user(username, password)
-            dialog = Gtk::MessageDialog.new(
+          condition = @db.create_user(username, password)
+          if !condition
+            success_dialog = Gtk::MessageDialog.new(
               parent: @window,
               flags: :destroy_with_parent,
               type: :info,
               buttons_type: :close,
-              message: "Успешный вход в систему!"
+              message: "Регистрация прошла успешно"
             )
-            dialog.run
+            success_dialog.run
+            success_dialog.destroy
           else
-            dialog = Gtk::MessageDialog.new(
+            error_dialog = Gtk::MessageDialog.new(
               parent: @window,
               flags: :destroy_with_parent,
               type: :info,
               buttons_type: :close,
               message: "Пользователь уже существует"
             )
-            dialog.run
+            error_dialog.run
+            error_dialog.destroy
           end
         end
-        dialog.destroy
       end
+      dialog.destroy if response == Gtk::ResponseType::CANCEL || response == Gtk::ResponseType::OK
     end
   end
 
@@ -119,6 +152,21 @@ class AuthUtils
     end
     if event.state.control_mask? && event.state.mod1_mask? && (event.keyval == Gdk::Keyval::KEY_minus)
       show_register_dialog
+    end
+  end
+
+  def enable_editable_fields
+    @details_fields.each_value do |field|
+      field.editable = true
+      field.can_focus = true
+    end
+    @phone_entries.each do |field|
+      field.editable = true
+      field.can_focus = true
+    end
+    @save_button.sensitive = true
+    if @role == 'admin'
+      @delete_button.sensitive = true
     end
   end
 end

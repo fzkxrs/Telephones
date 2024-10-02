@@ -1,18 +1,15 @@
 require 'gtk3'
 require_relative 'database'
-require_relative 'modules/auth_utils'
+require_relative 'auth'
 require_relative 'modules/gui_utils'
 
 class GUI
   include GuiUtils
   def initialize(db)
-    @auth = AuthUtils.new(db)
     @window = Gtk::Window.new("Телефоны ОАО \"Обеспечение РФЯЦ-ВНИИЭФ\" и ДЗО")
     @window.set_default_size(800, 400)
     @window.set_border_width(10)
     @db = db
-
-    @window.signal_connect("key_press_event") { |widget, event| @auth.on_key_press(widget, event) }
 
     # Main layout container (Horizontal Box)
     hbox = Gtk::Box.new(:horizontal, 10)
@@ -99,6 +96,22 @@ class GUI
     }
 
     row = 0
+    # Create moderator buttons (Save and Delete for admin)
+    save_button = Gtk::Button.new(label: "Сохранить")
+    delete_button = Gtk::Button.new(label: "Удалить")
+
+    save_button.sensitive = false
+    delete_button.sensitive = false # Only admins can delete
+
+    # Create a box for the buttons
+    hbox_buttons = Gtk::Box.new(:horizontal, 10)
+    hbox_buttons.pack_start(save_button, expand: true, fill: true, padding: 10)
+    hbox_buttons.pack_start(delete_button, expand: true, fill: true, padding: 10)
+
+    grid.attach(hbox_buttons, 0, row, 2, 1)
+
+    row += 1
+
     details_fields.each do |label_text, widget|
       localized_label = dictionary[label_text]
       label = Gtk::Label.new(localized_label.to_s)
@@ -108,6 +121,13 @@ class GUI
       grid.attach(widget, 1, row, 1, 1)
       row += 1
     end
+
+    # Add event listener for the save button
+    save_button.signal_connect("clicked") { save_changes(details_fields) }
+
+    # Add event listener for the delete button (Admins only)
+    delete_button.signal_connect("clicked") { delete_entry }
+
 
     # Table for phone numbers
     phone_label = Gtk::Label.new("Телефон")
@@ -154,6 +174,8 @@ class GUI
     scrolled_window.add(phones_vbox)
     grid.attach(scrolled_window, 1, row, 4, 1)
     grid.show_all
+    phone_entries = []
+    @auth = Auth.new(db, details_fields, phone_entries, save_button, delete_button)
 
     super(department_combo,
           lab_combo,
@@ -165,9 +187,12 @@ class GUI
           work_phone_entry,
           grid,
           row,
-          db
+          phone_entries,
+          db,
+          @auth
     )
 
+    @window.signal_connect("key_press_event") { |widget, event| @auth.on_key_press(widget, event) }
     @window.add(hbox)
     @window.signal_connect("destroy") { Gtk.main_quit }
   end
