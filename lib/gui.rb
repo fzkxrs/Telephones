@@ -68,18 +68,6 @@ class GUI
     grid.column_spacing = 10
     grid.row_spacing = 5
 
-    # Create moderator buttons (Save and Delete for admin)
-    save_button = Gtk::Button.new(label: "Сохранить")
-    delete_button = Gtk::Button.new(label: "Удалить")
-
-    save_button.sensitive = false
-    delete_button.sensitive = false # Only admins can delete
-
-    # Create a box for the buttons
-    hbox_buttons = Gtk::Box.new(:horizontal, 10)
-    hbox_buttons.pack_start(save_button, expand: true, fill: true, padding: 10)
-    hbox_buttons.pack_start(delete_button, expand: true, fill: true, padding: 10)
-
     # Labels and entries for right side fields
     details_fields = {
       enterprise: Gtk::Entry.new,
@@ -108,6 +96,22 @@ class GUI
     }
 
     row = 0
+    # Create moderator buttons (Save and Delete for admin)
+    save_button = Gtk::Button.new(label: "Сохранить")
+    delete_button = Gtk::Button.new(label: "Удалить")
+
+    save_button.sensitive = false
+    delete_button.sensitive = false # Only admins can delete
+
+    # Create a box for the buttons
+    hbox_buttons = Gtk::Box.new(:horizontal, 10)
+    hbox_buttons.pack_start(save_button, expand: true, fill: true, padding: 10)
+    hbox_buttons.pack_start(delete_button, expand: true, fill: true, padding: 10)
+
+    grid.attach(hbox_buttons, 0, row, 2, 1)
+
+    row += 1
+
     details_fields.each do |label_text, widget|
       localized_label = dictionary[label_text]
       label = Gtk::Label.new(localized_label.to_s)
@@ -187,8 +191,6 @@ class GUI
           db,
           @auth
     )
-
-    grid.attach(hbox_buttons, 0, row + 1, 2, 1)
 
     @window.signal_connect("key_press_event") { |widget, event| @auth.on_key_press(widget, event) }
     @window.add(hbox)

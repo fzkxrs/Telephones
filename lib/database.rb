@@ -104,10 +104,10 @@ class Database
   # Add method to update the entry
   def update_entry(entry_data)
     query = "CALL employees.sp_update_entry($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);"
-    execute_query(query, entry_data[:id], entry_data[:enterprise], entry_data[:subdivision],
-                  entry_data[:department], entry_data[:lab], entry_data[:fio],
-                  entry_data[:position], entry_data[:corp_inner_tel], entry_data[:inner_tel],
-                  entry_data[:email], entry_data[:address])
+    execute_query(query, entry_data["id"], entry_data["enterprise"], entry_data["subdivision"],
+                  entry_data["department"], entry_data["lab"], entry_data["fio"],
+                  entry_data["position"], entry_data["corp_inner_tel"], entry_data["inner_tel"],
+                  entry_data["email"], entry_data["address"])
   end
 
   # Add method to delete the entry
