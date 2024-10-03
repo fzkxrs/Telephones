@@ -102,18 +102,26 @@ class Database
   end
 
   # Add method to update the entry
-  def update_entry(entry_data)
-    query = "CALL employees.sp_update_entry($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);"
-    execute_query(query, entry_data["id"], entry_data["enterprise"], entry_data["subdivision"],
-                  entry_data["department"], entry_data["lab"], entry_data["fio"],
-                  entry_data["position"], entry_data["corp_inner_tel"], entry_data["inner_tel"],
-                  entry_data["email"], entry_data["address"])
+  def update_entry(id, entry_data)
+    query = "CALL sp_update_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text);"
+    execute_query(query,
+                  id.to_i,
+                  entry_data[:enterprise].to_s,
+                  entry_data[:subdivision].to_s,
+                  entry_data[:department].to_s,
+                  entry_data[:lab].to_s,
+                  entry_data[:fio].to_s,
+                  entry_data[:position].to_s,
+                  entry_data[:corp_inner_tel].to_i,
+                  entry_data[:inner_tel].to_i,
+                  entry_data[:email].to_s,
+                  entry_data[:address].to_s)
   end
 
   # Add method to delete the entry
   def delete_entry(id)
-    query = "CALL employees.sp_delete_entry($1);"
-    execute_query(query, id)
+    query = "CALL sp_delete_entry($1::integer);"
+    execute_query(query, id.to_i)
   end
 
   private

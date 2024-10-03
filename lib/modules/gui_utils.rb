@@ -1,4 +1,5 @@
 module GuiUtils
+  @id = 0
   def initialize(department_combo,
                  lab_combo,
                  subdivision_combo,
@@ -79,6 +80,7 @@ module GuiUtils
 
       # Populate the details fields with the result if available
       if res&.any?
+        @id = res[0]["id"]
         details_fields[:enterprise]&.text = res[0]["enterprise"] || ""
         details_fields[:subdivision]&.text = res[0]["subdivision"] || ""
         details_fields[:department]&.text = res[0]["department"] || ""
@@ -153,8 +155,17 @@ module GuiUtils
 
   # Enable editing of fields for moderators/admins
   def save_changes(details_fields)
+    if @id == 0
+      failed = Gtk::MessageDialog.new(
+        parent: @window,
+        flags: :destroy_with_parent,
+        type: :info,
+        buttons_type: :close,
+        message: "Пользователя не существует"
+      )
+    end
     entry_data = details_fields.transform_values(&:text) # Collect data from fields
-    @db.update_entry(entry_data) # Update the database with the new values
+    @db.update_entry(@id, entry_data) # Update the database with the new values
     success_dialog = Gtk::MessageDialog.new(
       parent: @window,
       flags: :destroy_with_parent,
@@ -178,7 +189,7 @@ module GuiUtils
 
     confirm_dialog.signal_connect("response") do |_, response|
       if response == Gtk::ResponseType::YES
-        @db.delete_entry # Call your DB method to delete the entry
+        @db.delete_entry(@id) # Call your DB method to delete the entry
         success_dialog = Gtk::MessageDialog.new(
           parent: @window,
           flags: :destroy_with_parent,
