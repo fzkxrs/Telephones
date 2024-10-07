@@ -15,7 +15,6 @@ class Auth
   end
 
   def register_user(username, password)
-    password_hash = BCrypt::Password.new(password)
     @db.get_stored_password_for(username)
   end
 
@@ -161,8 +160,8 @@ class Auth
       field.can_focus = true
     end
     @phone_entries.each do |field|
-      field.editable = true
-      field.can_focus = true
+      field.each do |element| element.editable = true end
+      field.each do |element| element.can_focus = true end
     end
     @save_button.sensitive = true
     if @role == 'admin'

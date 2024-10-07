@@ -162,6 +162,8 @@ class GUI
     hbox.pack_start(grid, expand: true, fill: true, padding: 10)
     hbox.pack_start(photo_box, expand: false, fill: false, padding: 10)
 
+    phone_entries = []
+    i = 0
     # Create a scrollable area for phone entries
     scrolled_window = Gtk::ScrolledWindow.new
     scrolled_window.set_policy(:automatic, :automatic)
@@ -171,10 +173,25 @@ class GUI
     # Create a box to hold the dynamic entries for phone numbers
     phones_vbox = Gtk::Box.new(:vertical, 5)
 
+    10.times do
+      phone_entries.append([Gtk::Entry.new, Gtk::Entry.new, Gtk::Entry.new, Gtk::Entry.new])
+      row_box = Gtk::Box.new(:horizontal, 10)
+      row_box.pack_start(phone_entries[i][0], expand: true, fill: true, padding: 5)
+      row_box.pack_start(phone_entries[i][1], expand: true, fill: true, padding: 5)
+      row_box.pack_start(phone_entries[i][2], expand: true, fill: true, padding: 5)
+      row_box.pack_start(phone_entries[i][3], expand: true, fill: true, padding: 5)
+
+      phones_vbox.pack_start(row_box, expand: false, fill: false, padding: 5)
+      i += 1
+    end
+    # Add the vbox containing entries to the scrolled window
     scrolled_window.add(phones_vbox)
-    grid.attach(scrolled_window, 1, row, 4, 1)
+
+    # Add the scrolled window to the main grid
+    grid.attach(scrolled_window, 1, row, 4, 1) # Attach across 4 columns
+    row += 1
+
     grid.show_all
-    phone_entries = []
     @auth = Auth.new(db, details_fields, phone_entries, save_button, delete_button)
 
     super(department_combo,

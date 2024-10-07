@@ -73,13 +73,17 @@ module GuiUtils
         corp_inner_tel_value
       )
 
-      # Clear previous phone/fax/modem/mgr entries if any
-      grid.children.each do |child|
-        grid.remove(child) if child.is_a?(Gtk::ScrolledWindow)
-      end
-
       # Populate the details fields with the result if available
       if res&.any?
+        # Clear the contents of the phone_entries
+        phone_entries.each do |entry_set|
+          entry_set.each do |entry|
+            entry.text = ""  # Clear the text of each phone-related entry field
+            entry.editable = false
+            entry.can_focus = false
+          end
+        end
+
         @id = res[0]["id"]
         details_fields[:enterprise]&.text = res[0]["enterprise"] || ""
         details_fields[:subdivision]&.text = res[0]["subdivision"] || ""
@@ -92,52 +96,23 @@ module GuiUtils
         details_fields[:email]&.text = res[0]["email"] || ""
         details_fields[:address]&.text = res[0]["address"] || ""
 
-        # Create a scrollable area for phone entries
-        scrolled_window = Gtk::ScrolledWindow.new
-        scrolled_window.set_policy(:automatic, :automatic)
-        scrolled_window.set_min_content_height(100) # Adjust this value for the desired height
-        scrolled_window.set_min_content_width(800)  # Adjust this value for the desired width
-
-        # Create a box to hold the dynamic entries for phone numbers
-        phones_vbox = Gtk::Box.new(:vertical, 5)
+        i = 0
         res.each do |phone_entry_data|
-          phone_entry = Gtk::Entry.new
+          phone_entry = phone_entries[i][0]
           phone_entry.text = phone_entry_data["phone"].to_s
-          phone_entry.editable = false
-          phone_entry.can_focus = false
 
-          fax_entry = Gtk::Entry.new
+          fax_entry = phone_entries[i][1]
           fax_entry.text = phone_entry_data["fax"].to_s
-          fax_entry.editable = false
-          fax_entry.can_focus = false
-          modem_entry = Gtk::Entry.new
+
+          modem_entry = phone_entries[i][2]
           modem_entry.text = phone_entry_data["modem"].to_s
-          modem_entry.editable = false
-          modem_entry.can_focus = false
-          mgr_entry = Gtk::Entry.new
+
+          mgr_entry = phone_entries[i][3]
           mgr_entry.text = phone_entry_data["mg"].to_s
-          mgr_entry.editable = false
-          mgr_entry.can_focus = false
-          phone_entries.append(phone_entry, fax_entry, modem_entry, mgr_entry)
-
-          # Add each set of entries as a row
-          row_box = Gtk::Box.new(:horizontal, 10)
-          row_box.pack_start(phone_entry, expand: true, fill: true, padding: 5)
-          row_box.pack_start(fax_entry, expand: true, fill: true, padding: 5)
-          row_box.pack_start(modem_entry, expand: true, fill: true, padding: 5)
-          row_box.pack_start(mgr_entry, expand: true, fill: true, padding: 5)
-
-          phones_vbox.pack_start(row_box, expand: false, fill: false, padding: 5)
+          i += 1
         end
 
-        # Add the vbox containing entries to the scrolled window
-        scrolled_window.add(phones_vbox)
-
-        # Add the scrolled window to the main grid
-        grid.attach(scrolled_window, 1, row, 4, 1) # Attach across 4 columns
-        row += 1
-
-        grid.show_all  # Update and show everything in the grid
+  # Update and show everything in the grid
       else
         # Display a message dialog to inform the user
         dialog = Gtk::MessageDialog.new(
