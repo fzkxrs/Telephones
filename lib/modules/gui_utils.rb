@@ -1,5 +1,6 @@
 module GuiUtils
   @id = 0
+
   def initialize(department_combo,
                  lab_combo,
                  subdivision_combo,
@@ -8,11 +9,8 @@ module GuiUtils
                  details_fields,
                  fio_entry,
                  work_phone_entry,
-                 grid,
-                 row,
                  phone_entries,
-                 db,
-                 auth
+                 db
   )
     department_combo.signal_connect('changed') do
       lab_combo.remove_all
@@ -78,7 +76,7 @@ module GuiUtils
         # Clear the contents of the phone_entries
         phone_entries.each do |entry_set|
           entry_set.each do |entry|
-            entry.text = ""  # Clear the text of each phone-related entry field
+            entry.text = "" # Clear the text of each phone-related entry field
             entry.editable = false
             entry.can_focus = false
           end
@@ -112,7 +110,7 @@ module GuiUtils
           i += 1
         end
 
-  # Update and show everything in the grid
+        # Update and show everything in the grid
       else
         # Display a message dialog to inform the user
         dialog = Gtk::MessageDialog.new(
@@ -129,7 +127,7 @@ module GuiUtils
   end
 
   # Enable editing of fields for moderators/admins
-  def save_changes(details_fields)
+  def save_changes(details_fields, phone_entries)
     if @id == 0
       failed = Gtk::MessageDialog.new(
         parent: @window,
@@ -138,18 +136,38 @@ module GuiUtils
         buttons_type: :close,
         message: "Пользователя не существует"
       )
+      failed.run
+      failed.destroy
     end
     entry_data = details_fields.transform_values(&:text) # Collect data from fields
-    @db.update_entry(@id, entry_data) # Update the database with the new values
-    success_dialog = Gtk::MessageDialog.new(
-      parent: @window,
-      flags: :destroy_with_parent,
-      type: :info,
-      buttons_type: :close,
-      message: "Данные успешно сохранены"
-    )
-    success_dialog.run
-    success_dialog.destroy
+    phones_data = phone_entries.map do |phone_row|
+      phone_row.map do |entry|
+        entry.text.to_i unless entry.text.empty?
+      end
+    end.reject { |phone_row| phone_row.all?(&:nil?) }
+    postgres_array = "{#{phones_data.map { |row| "{#{row.join(',')}}" }.join(',')}}"
+    result = @db.update_entry(@id, entry_data, postgres_array) # Update the database with the new values
+    if result.nil?
+      failed_dialog = Gtk::MessageDialog.new(
+        parent: @window,
+        flags: :destroy_with_parent,
+        type: :info,
+        buttons_type: :close,
+        message: "Ошибка при сохранении данных"
+      )
+      failed_dialog.run
+      failed_dialog.destroy
+    else
+      success_dialog = Gtk::MessageDialog.new(
+        parent: @window,
+        flags: :destroy_with_parent,
+        type: :info,
+        buttons_type: :close,
+        message: "Данные успешно сохранены"
+      )
+      success_dialog.run
+      success_dialog.destroy
+    end
   end
 
   # Delete entry (admin only)

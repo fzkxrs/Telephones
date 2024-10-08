@@ -122,9 +122,6 @@ class GUI
       row += 1
     end
 
-    # Add event listener for the save button
-    save_button.signal_connect("clicked") { save_changes(details_fields) }
-
     # Add event listener for the delete button (Admins only)
     delete_button.signal_connect("clicked") { delete_entry }
 
@@ -192,6 +189,10 @@ class GUI
     row += 1
 
     grid.show_all
+
+    # Add event listener for the save button
+    save_button.signal_connect("clicked") { save_changes(details_fields, phone_entries) }
+
     @auth = Auth.new(db, details_fields, phone_entries, save_button, delete_button)
 
     super(department_combo,
@@ -202,11 +203,8 @@ class GUI
           details_fields,
           fio_entry,
           work_phone_entry,
-          grid,
-          row,
           phone_entries,
-          db,
-          @auth
+          db
     )
 
     @window.signal_connect("key_press_event") { |widget, event| @auth.on_key_press(widget, event) }

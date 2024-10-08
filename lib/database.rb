@@ -102,9 +102,9 @@ class Database
   end
 
   # Add method to update the entry
-  def update_entry(id, entry_data)
+  def update_entry(id, entry_data, phone_entries)
     query = "CALL sp_update_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text);"
-    execute_query(query,
+    result = execute_query(query,
                   id.to_i,
                   entry_data[:enterprise].to_s,
                   entry_data[:subdivision].to_s,
@@ -116,6 +116,11 @@ class Database
                   entry_data[:inner_tel].to_i,
                   entry_data[:email].to_s,
                   entry_data[:address].to_s)
+    if result.nil?
+      nil
+    end
+    query = "CALL sp_update_phones($1, $2::integer[][]);"
+    execute_query(query, id, phone_entries)
   end
 
   # Add method to delete the entry
