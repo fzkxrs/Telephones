@@ -55,9 +55,6 @@ class Database
       tel = nil
     end
 
-    # Add wildcard for partial fio match if applicable
-    # fio = "%#{fio}%" unless fio.nil? || fio.empty?
-
     begin
       # Call the stored procedure
       execute_query("SELECT * FROM fn_search_employee($1, $2, $3, $4, $5, $6);",
@@ -127,6 +124,29 @@ class Database
   def delete_entry(id)
     query = "CALL sp_delete_entry($1::integer);"
     execute_query(query, id.to_i)
+  end
+
+  def create_entry(enterprise)
+    query = "SELECT * FROM fn_create_entry($1::text);"
+    execute_query(query, enterprise)
+  end
+
+  def store_image(id, image_path)
+    begin
+      # Read image data as binary
+      image_data = File.open(image_path, 'rb') { |file| file.read }
+
+      db = PG.connect(dbname: 'your_database_name', user: 'your_username', password: 'your_password')
+
+      # Insert the image into the employees_photos table
+      db.exec_params("INSERT INTO employees_photos (employee_id, photo) VALUES ($1, $2)", [employee_id, image_data])
+
+      puts "Image successfully stored in the database."
+    rescue PG::Error => e
+      puts "Database error: #{e.message}"
+    ensure
+      db&.close if db
+    end
   end
 
   private

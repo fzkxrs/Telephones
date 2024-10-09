@@ -4,11 +4,12 @@ class Auth
   attr_reader :logged_in_user
   attr_reader :role
 
-  def initialize(db, details_fields, phone_entries, save_button, delete_button)
+  def initialize(db, details_fields, phone_entries, save_button, delete_button, create_button)
     @details_fields = details_fields
     @phone_entries = phone_entries
     @save_button = save_button
     @delete_button = delete_button
+    @create_button = create_button
     @logged_in_user = nil # This will store the username of the logged-in user
     @role = nil # This will store the role of the logged-in user
     @db = db
@@ -59,7 +60,6 @@ class Auth
           enable_editable_fields
           success_dialog.run
           success_dialog.destroy
-          # Enable editing of fields for moderators/admins
           # Here, update your application's UI for logged-in users
         else
           error_dialog = Gtk::MessageDialog.new(
@@ -164,6 +164,7 @@ class Auth
       field.each do |element| element.can_focus = true end
     end
     @save_button.sensitive = true
+    @create_button.sensitive = true
     if @role == 'admin'
       @delete_button.sensitive = true
     end

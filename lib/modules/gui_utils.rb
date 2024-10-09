@@ -58,7 +58,6 @@ module GuiUtils
       subdivision_value = subdivision_combo.active_text == "Подразделение" ? nil : subdivision_combo.active_text
       department_value = department_combo.active_text == "Отдел/Группа" ? nil : department_combo.active_text
       lab_value = lab_combo.active_text == "Лаборатория" ? nil : lab_combo.active_text
-      position_value = "" # If there's an entry for position, fetch its text or set it to nil
       corp_inner_tel_value = work_phone_entry.text.empty? ? nil : work_phone_entry.text.to_i
 
       # Call the search_employee method with the gathered values
@@ -77,8 +76,6 @@ module GuiUtils
         phone_entries.each do |entry_set|
           entry_set.each do |entry|
             entry.text = "" # Clear the text of each phone-related entry field
-            entry.editable = false
-            entry.can_focus = false
           end
         end
 
@@ -197,5 +194,29 @@ module GuiUtils
     end
 
     confirm_dialog.run
+  end
+
+  # Function to create a new user entry in the database
+  def create_new_user(details_fields, role)
+    @id = @db.create_entry(role)[0]['fn_create_entry']
+    clear_details_fields(details_fields)
+    details_fields[:enterprise]&.text = role
+    if role != "admin"
+      details_fields[:enterprise].editable = false
+      details_fields[:enterprise].can_focus = false
+    end
+  end
+
+  def clear_details_fields(details_fields)
+    details_fields[:enterprise]&.text = ""
+    details_fields[:subdivision]&.text = ""
+    details_fields[:department]&.text = ""
+    details_fields[:lab]&.text = ""
+    details_fields[:fio]&.text = ""
+    details_fields[:position]&.text = ""
+    details_fields[:corp_inner_tel]&.text = ""
+    details_fields[:inner_tel]&.text = ""
+    details_fields[:email]&.text = ""
+    details_fields[:address]&.text = ""
   end
 end

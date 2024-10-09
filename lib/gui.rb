@@ -99,14 +99,18 @@ class GUI
     # Create moderator buttons (Save and Delete for admin)
     save_button = Gtk::Button.new(label: "Сохранить")
     delete_button = Gtk::Button.new(label: "Удалить")
+    create_button = Gtk::Button.new(label: "+")
+
 
     save_button.sensitive = false
     delete_button.sensitive = false # Only admins can delete
+    create_button.sensitive = false
 
     # Create a box for the buttons
     hbox_buttons = Gtk::Box.new(:horizontal, 10)
     hbox_buttons.pack_start(save_button, expand: true, fill: true, padding: 10)
     hbox_buttons.pack_start(delete_button, expand: true, fill: true, padding: 10)
+    hbox_buttons.pack_start(create_button, expand: true, fill: true, padding: 10)
 
     grid.attach(hbox_buttons, 0, row, 2, 1)
 
@@ -181,6 +185,14 @@ class GUI
       phones_vbox.pack_start(row_box, expand: false, fill: false, padding: 5)
       i += 1
     end
+
+    phone_entries.each do |entry_set|
+      entry_set.each do |entry|
+        entry.editable = false
+        entry.can_focus = false
+      end
+    end
+
     # Add the vbox containing entries to the scrolled window
     scrolled_window.add(phones_vbox)
 
@@ -190,10 +202,7 @@ class GUI
 
     grid.show_all
 
-    # Add event listener for the save button
-    save_button.signal_connect("clicked") { save_changes(details_fields, phone_entries) }
-
-    @auth = Auth.new(db, details_fields, phone_entries, save_button, delete_button)
+    @auth = Auth.new(db, details_fields, phone_entries, save_button, delete_button, create_button)
 
     super(department_combo,
           lab_combo,
@@ -206,6 +215,10 @@ class GUI
           phone_entries,
           db
     )
+
+    # Add event listener for the save button
+    save_button.signal_connect("clicked") { save_changes(details_fields, phone_entries) }
+    create_button.signal_connect("clicked") { create_new_user(details_fields, @auth.role) }
 
     @window.signal_connect("key_press_event") { |widget, event| @auth.on_key_press(widget, event) }
     @window.add(hbox)
