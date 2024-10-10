@@ -100,7 +100,7 @@ class Database
 
   # Add method to update the entry
   def update_entry(id, entry_data, phone_entries)
-    query = "CALL sp_update_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text);"
+    query = "SELECT * FROM fn_upsert_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text);"
     result = execute_query(query,
                   id.to_i,
                   entry_data[:enterprise].to_s,
@@ -113,7 +113,7 @@ class Database
                   entry_data[:inner_tel].to_i,
                   entry_data[:email].to_s,
                   entry_data[:address].to_s)
-    if result.nil?
+    if result.nil? || id == 0
       nil
     end
     query = "CALL sp_update_phones($1, $2::integer[][]);"
@@ -124,11 +124,6 @@ class Database
   def delete_entry(id)
     query = "CALL sp_delete_entry($1::integer);"
     execute_query(query, id.to_i)
-  end
-
-  def create_entry(enterprise)
-    query = "SELECT * FROM fn_create_entry($1::text);"
-    execute_query(query, enterprise)
   end
 
   def store_image(id, image_path)
@@ -147,6 +142,19 @@ class Database
     ensure
       db&.close if db
     end
+  end
+
+  def upload_image_to_db(selected_image_path, id)
+    # Read the image file as binary data
+    image_data = File.open(selected_image_path, 'rb') { |file| file.read }
+
+    # Update the employee's photo in the database
+    execute_query(
+      "INSERT employees.photos SET photo = $1 WHERE employee_id = $2",
+      PG::Connection.escape_bytea(image_data), id
+    )
+
+    puts "Image uploaded successfully for employee ID #{id}"
   end
 
   private

@@ -10,6 +10,7 @@ module GuiUtils
                  fio_entry,
                  work_phone_entry,
                  phone_entries,
+                 photo_event_box,
                  db
   )
     department_combo.signal_connect('changed') do
@@ -53,6 +54,7 @@ module GuiUtils
 
     search_button.signal_connect('clicked') do
       # Gather the search input values from the ComboBoxes and Entries
+      @auth.enable_editable_fields
       fio_value = fio_entry.text.empty? ? nil : fio_entry.text
       enterprise_value = enterprise_combo.active_text == "Предприятие" ? nil : enterprise_combo.active_text
       subdivision_value = subdivision_combo.active_text == "Подразделение" ? nil : subdivision_combo.active_text
@@ -120,6 +122,50 @@ module GuiUtils
         dialog.run
         dialog.destroy
       end
+    end
+
+    # Signal to handle the click on the EventBox (photo_box becomes clickable)
+    photo_event_box.signal_connect('button_press_event') do
+      # Create a FileChooserDialog to select an image
+      dialog = Gtk::FileChooserDialog.new(
+        title: "Select an Image",
+        parent: @window,
+        action: Gtk::FileChooserAction::OPEN,
+        buttons: [
+          [Gtk::Stock::CANCEL, Gtk::ResponseType::CANCEL],
+          [Gtk::Stock::OPEN, Gtk::ResponseType::OK]
+        ]
+      )
+
+      # Add a filter for image files
+      filter = Gtk::FileFilter.new
+      filter.name = "Image files"
+      filter.add_mime_type("image/png")
+      filter.add_mime_type("image/jpeg")
+      filter.add_pattern("*.png")
+      filter.add_pattern("*.jpg")
+      filter.add_pattern("*.jpeg")
+      dialog.add_filter(filter)
+
+      response = dialog.run
+
+      if response == Gtk::ResponseType::OK
+        selected_image_path = dialog.filename
+        if File.exist?(selected_image_path)
+          puts "Selected image path: #{selected_image_path}"
+          if !@id.nil? && @id != 0
+            @selected_image_path = selected_image_path
+            @db.upload_image_to_db(selected_image_path, @id)
+          end
+          # You can now use the selected_image_path, e.g., load it into the UI
+        else
+          puts "Error: Selected file does not exist."
+        end
+      else
+        puts "File selection was canceled."
+      end
+
+      dialog.destroy
     end
   end
 
@@ -197,9 +243,8 @@ module GuiUtils
   end
 
   # Function to create a new user entry in the database
-  def create_new_user(details_fields, role)
-    @id = @db.create_entry(role)[0]['fn_create_entry']
-    clear_details_fields(details_fields)
+  def create_new_user(details_fields, phone_entries, role)
+    clear_fields(details_fields, phone_entries)
     details_fields[:enterprise]&.text = role
     if role != "admin"
       details_fields[:enterprise].editable = false
@@ -207,7 +252,7 @@ module GuiUtils
     end
   end
 
-  def clear_details_fields(details_fields)
+  def clear_fields(details_fields, phone_entries)
     details_fields[:enterprise]&.text = ""
     details_fields[:subdivision]&.text = ""
     details_fields[:department]&.text = ""
@@ -218,5 +263,10 @@ module GuiUtils
     details_fields[:inner_tel]&.text = ""
     details_fields[:email]&.text = ""
     details_fields[:address]&.text = ""
+    phone_entries.each do |entry_set|
+      entry_set.each do |entry|
+        entry.text = ""
+      end
+    end
   end
 end

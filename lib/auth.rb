@@ -155,18 +155,40 @@ class Auth
   end
 
   def enable_editable_fields
-    @details_fields.each_value do |field|
-      field.editable = true
-      field.can_focus = true
-    end
-    @phone_entries.each do |field|
-      field.each do |element| element.editable = true end
-      field.each do |element| element.can_focus = true end
-    end
-    @save_button.sensitive = true
-    @create_button.sensitive = true
-    if @role == 'admin'
+    if @role != 'admin' && @details_fields[:enterprise].text == @role || @role == 'admin'
+      @details_fields.each_value do |field|
+        field.editable = true
+        field.can_focus = true
+      end
+      @phone_entries.each do |field|
+        field.each do |element|
+          element.editable = true
+        end
+        field.each do |element|
+          element.can_focus = true
+        end
+      end
+      @save_button.sensitive = true
+      @create_button.sensitive = true
       @delete_button.sensitive = true
+    elsif !@role.nil?
+      @create_button.sensitive = true
+    else
+      @details_fields.each_value do |field|
+        field.editable = false
+        field.can_focus = false
+      end
+      @phone_entries.each do |field|
+        field.each do |element|
+          element.editable = false
+        end
+        field.each do |element|
+          element.can_focus = false
+        end
+      end
+      @save_button.sensitive = false
+      @create_button.sensitive = false
+      @delete_button.sensitive = false
     end
   end
 end
