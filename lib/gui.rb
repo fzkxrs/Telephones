@@ -228,7 +228,7 @@ class GUI
 
     # Add event listener for the save button
     save_button.signal_connect("clicked") do
-      save_changes(details_fields, phone_entries)
+      save_changes(details_fields, phone_entries, @auth.role)
       enterprises = db.search_by("enterprise").append("")
       enterprise_combo.remove_all
       enterprises.each { |enterprise| enterprise_combo.append_text(enterprise) }

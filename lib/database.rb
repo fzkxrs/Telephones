@@ -99,8 +99,8 @@ class Database
   end
 
   # Add method to update the entry
-  def update_entry(id, entry_data, phone_entries)
-    query = "SELECT * FROM fn_upsert_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text);"
+  def upsert_entry(id, entry_data, phone_entries, role)
+    query = "SELECT * FROM fn_upsert_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text, $12::text);"
     result = execute_query(query,
                   id.to_i,
                   entry_data[:enterprise].to_s,
@@ -112,12 +112,22 @@ class Database
                   entry_data[:corp_inner_tel].to_i,
                   entry_data[:inner_tel].to_i,
                   entry_data[:email].to_s,
-                  entry_data[:address].to_s)
-    if result.nil? || id == 0
+                  entry_data[:address].to_s,
+                  role)
+    if result.nil?
       nil
     end
-    query = "CALL sp_update_phones($1, $2::integer[][]);"
-    execute_query(query, id, phone_entries)
+    if id.nil? || id == 0
+      id = result[0]['fn_upsert_entry'].to_i
+    end
+    if !phone_entries.nil? && !phone_entries.to_json.empty?
+      query = "CALL sp_update_phones($1, $2::integer[][]);"
+      result = execute_query(query, id, phone_entries)
+    end
+    if result.nil?
+      nil
+    end
+    id
   end
 
   # Add method to delete the entry

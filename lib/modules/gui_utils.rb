@@ -170,7 +170,7 @@ module GuiUtils
   end
 
   # Enable editing of fields for moderators/admins
-  def save_changes(details_fields, phone_entries)
+  def save_changes(details_fields, phone_entries, role)
     if @id == 0
       failed = Gtk::MessageDialog.new(
         parent: @window,
@@ -189,8 +189,8 @@ module GuiUtils
       end
     end.reject { |phone_row| phone_row.all?(&:nil?) }
     postgres_array = "{#{phones_data.map { |row| "{#{row.join(',')}}" }.join(',')}}"
-    result = @db.update_entry(@id, entry_data, postgres_array) # Update the database with the new values
-    if result.nil?
+    @id = @db.upsert_entry(@id, entry_data, postgres_array, role) # Update the database with the new values
+    if @id.nil?
       failed_dialog = Gtk::MessageDialog.new(
         parent: @window,
         flags: :destroy_with_parent,
@@ -246,6 +246,7 @@ module GuiUtils
   def create_new_user(details_fields, phone_entries, role)
     clear_fields(details_fields, phone_entries)
     details_fields[:enterprise]&.text = role
+    @auth.enable_editable_fields
     if role != "admin"
       details_fields[:enterprise].editable = false
       details_fields[:enterprise].can_focus = false
