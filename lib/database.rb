@@ -120,7 +120,7 @@ class Database
     if id.nil? || id == 0
       id = result[0]['fn_upsert_entry'].to_i
     end
-    if !phone_entries.nil? && !phone_entries.to_json.empty?
+    if !phone_entries.nil? && phone_entries != "{}"
       query = "CALL sp_update_phones($1, $2::integer[][]);"
       result = execute_query(query, id, phone_entries)
     end
@@ -137,35 +137,38 @@ class Database
     id
   end
 
-  def store_image(id, image_path)
-    begin
-      # Read image data as binary
-      image_data = File.open(image_path, 'rb') { |file| file.read }
 
-      db = PG.connect(dbname: 'your_database_name', user: 'your_username', password: 'your_password')
+  def upload_image_to_db(selected_image_path, id, username)
+    # Use the file path directly
+    photo_path = selected_image_path
 
-      # Insert the image into the employees_photos table
-      db.exec_params("INSERT INTO employees_photos (employee_id, photo) VALUES ($1, $2)", [employee_id, image_data])
-
-      puts "Image successfully stored in the database."
-    rescue PG::Error => e
-      puts "Database error: #{e.message}"
-    ensure
-      db&.close if db
-    end
-  end
-
-  def upload_image_to_db(selected_image_path, id)
-    # Read the image file as binary data
-    image_data = File.open(selected_image_path, 'rb') { |file| file.read }
-
-    # Update the employee's photo in the database
+    # Update or insert the employee's photo path in the database
     execute_query(
-      "INSERT employees.photos SET photo = $1 WHERE employee_id = $2",
-      image_data, id
+      "INSERT INTO employees.photos (id, photo_path, username) VALUES ($1, $2, $3)
+     ON CONFLICT (id) DO UPDATE SET photo_path = EXCLUDED.photo_path, username = EXCLUDED.username",
+      id, photo_path, username
     )
 
-    puts "Image uploaded successfully for employee ID #{id}"
+    puts "Image path uploaded successfully for employee ID #{id}"
+    id
+  end
+
+  def get_image_path_by_id(id)
+    # Query to retrieve the photo_path from the database by employee ID
+    result = execute_query(
+      "SELECT photo_path FROM employees.photos WHERE id = $1",
+      id
+    )
+
+    # Check if a result was found
+    if result.any?
+      photo_path = result[0]['photo_path']
+      puts "Image path found for employee ID #{id}: #{photo_path}"
+      photo_path
+    else
+      puts "No image path found for employee ID #{id}"
+      ""
+    end
   end
 
   private

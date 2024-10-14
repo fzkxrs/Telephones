@@ -54,7 +54,6 @@ module GuiUtils
 
     search_button.signal_connect('clicked') do
       # Gather the search input values from the ComboBoxes and Entries
-      @auth.enable_editable_fields
       fio_value = fio_entry.text.empty? ? nil : fio_entry.text
       enterprise_value = enterprise_combo.active_text == "Предприятие" ? nil : enterprise_combo.active_text
       subdivision_value = subdivision_combo.active_text == "Подразделение" ? nil : subdivision_combo.active_text
@@ -108,8 +107,18 @@ module GuiUtils
           mgr_entry.text = phone_entry_data["mg"].to_s
           i += 1
         end
+        @auth.enable_editable_fields
 
-        # Update and show everything in the grid
+
+        image_widget = Gtk::Image.new
+
+        @image_path = @db.get_image_path_by_id(@id)
+
+        # Load and display image from database
+        display_image(image_widget, @image_path)
+
+        @window.add(image_widget)
+        @window.show_all
       else
         # Display a message dialog to inform the user
         dialog = Gtk::MessageDialog.new(
@@ -155,7 +164,6 @@ module GuiUtils
           puts "Selected image path: #{selected_image_path}"
           if !@id.nil? && @id != 0
             @selected_image_path = selected_image_path
-            @db.upload_image_to_db(selected_image_path, @id)
           end
           # You can now use the selected_image_path, e.g., load it into the UI
         else
@@ -180,7 +188,7 @@ module GuiUtils
     postgres_array = "{#{phones_data.map { |row| "{#{row.join(',')}}" }.join(',')}}"
     @id = @db.upsert_entry(@id, entry_data, postgres_array, role) # Update the database with the new values
     if !@selected_image_path.nil?
-      @id = @db.upload_image_to_db(@selected_image_path, @id)
+      @id = @db.upload_image_to_db(@selected_image_path, @id, role)
     end
     if @id.nil?
       failed_dialog = Gtk::MessageDialog.new(
@@ -261,6 +269,20 @@ module GuiUtils
       entry_set.each do |entry|
         entry.text = ""
       end
+    end
+  end
+
+  def display_image(image_widget, photo_path)
+    if File.exist?(photo_path)
+      begin
+        pixbuf = GdkPixbuf::Pixbuf.new(path: photo_path)
+        image_widget.set_from_pixbuf(pixbuf)
+        puts "Image successfully loaded from #{photo_path}"
+      rescue StandardError => e
+        puts "Failed to load image: #{e.message}"
+      end
+    else
+      puts "Image file does not exist at #{photo_path}"
     end
   end
 end
