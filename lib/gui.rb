@@ -99,14 +99,17 @@ class GUI
     # Create moderator buttons (Save and Delete for admin)
     save_button = Gtk::Button.new(label: "Сохранить")
     delete_button = Gtk::Button.new(label: "Удалить")
+    create_button = Gtk::Button.new(label: "+")
 
     save_button.sensitive = false
     delete_button.sensitive = false # Only admins can delete
+    create_button.sensitive = false
 
     # Create a box for the buttons
     hbox_buttons = Gtk::Box.new(:horizontal, 10)
     hbox_buttons.pack_start(save_button, expand: true, fill: true, padding: 10)
     hbox_buttons.pack_start(delete_button, expand: true, fill: true, padding: 10)
+    hbox_buttons.pack_start(create_button, expand: true, fill: true, padding: 10)
 
     grid.attach(hbox_buttons, 0, row, 2, 1)
 
@@ -121,9 +124,6 @@ class GUI
       grid.attach(widget, 1, row, 1, 1)
       row += 1
     end
-
-    # Add event listener for the save button
-    save_button.signal_connect("clicked") { save_changes(details_fields) }
 
     # Add event listener for the delete button (Admins only)
     delete_button.signal_connect("clicked") { delete_entry }
@@ -144,9 +144,15 @@ class GUI
     # Entries for phone numbers (Phone/Fax/Modem/Mgr)
 
     # Photo placeholder
+    # Create an EventBox to wrap the photo_box
+    photo_event_box = Gtk::EventBox.new
+
+    # Photo placeholder (DrawingArea)
     photo_box = Gtk::DrawingArea.new
     photo_box.set_size_request(100, 150)
     photo_box.override_background_color(:normal, Gdk::RGBA.new(0.9, 0.9, 0.9, 1))
+
+    # Draw the placeholder cross
     photo_box.signal_connect "draw" do
       cr = photo_box.window.create_cairo_context
       cr.set_source_rgb(0.6, 0.6, 0.6)
@@ -157,11 +163,16 @@ class GUI
       cr.stroke
     end
 
+    # Add photo_box to the EventBox
+    photo_event_box.add(photo_box)
+
     # Organize the main layout
     hbox.pack_start(vbox_left, expand: false, fill: false, padding: 10)
     hbox.pack_start(grid, expand: true, fill: true, padding: 10)
-    hbox.pack_start(photo_box, expand: false, fill: false, padding: 10)
+    hbox.pack_start(photo_event_box, expand: false, fill: false, padding: 10)
 
+    phone_entries = []
+    i = 0
     # Create a scrollable area for phone entries
     scrolled_window = Gtk::ScrolledWindow.new
     scrolled_window.set_policy(:automatic, :automatic)
@@ -171,11 +182,35 @@ class GUI
     # Create a box to hold the dynamic entries for phone numbers
     phones_vbox = Gtk::Box.new(:vertical, 5)
 
+    10.times do
+      phone_entries.append([Gtk::Entry.new, Gtk::Entry.new, Gtk::Entry.new, Gtk::Entry.new])
+      row_box = Gtk::Box.new(:horizontal, 10)
+      row_box.pack_start(phone_entries[i][0], expand: true, fill: true, padding: 5)
+      row_box.pack_start(phone_entries[i][1], expand: true, fill: true, padding: 5)
+      row_box.pack_start(phone_entries[i][2], expand: true, fill: true, padding: 5)
+      row_box.pack_start(phone_entries[i][3], expand: true, fill: true, padding: 5)
+
+      phones_vbox.pack_start(row_box, expand: false, fill: false, padding: 5)
+      i += 1
+    end
+
+    phone_entries.each do |entry_set|
+      entry_set.each do |entry|
+        entry.editable = false
+        entry.can_focus = false
+      end
+    end
+
+    # Add the vbox containing entries to the scrolled window
     scrolled_window.add(phones_vbox)
-    grid.attach(scrolled_window, 1, row, 4, 1)
+
+    # Add the scrolled window to the main grid
+    grid.attach(scrolled_window, 1, row, 4, 1) # Attach across 4 columns
+    row += 1
+
     grid.show_all
-    phone_entries = []
-    @auth = Auth.new(db, details_fields, phone_entries, save_button, delete_button)
+
+    @auth = Auth.new(db, details_fields, phone_entries, save_button, delete_button, create_button)
 
     super(department_combo,
           lab_combo,
@@ -185,12 +220,19 @@ class GUI
           details_fields,
           fio_entry,
           work_phone_entry,
-          grid,
-          row,
           phone_entries,
-          db,
-          @auth
+          photo_event_box,
+          db
     )
+
+    # Add event listener for the save button
+    save_button.signal_connect("clicked") do
+      save_changes(details_fields, phone_entries, @auth.role)
+      enterprises = db.search_by("enterprise").append("")
+      enterprise_combo.remove_all
+      enterprises.each { |enterprise| enterprise_combo.append_text(enterprise) }
+    end
+    create_button.signal_connect("clicked") { create_new_user(details_fields, phone_entries, @auth.role) }
 
     @window.signal_connect("key_press_event") { |widget, event| @auth.on_key_press(widget, event) }
     @window.add(hbox)

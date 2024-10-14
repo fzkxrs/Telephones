@@ -55,9 +55,6 @@ class Database
       tel = nil
     end
 
-    # Add wildcard for partial fio match if applicable
-    # fio = "%#{fio}%" unless fio.nil? || fio.empty?
-
     begin
       # Call the stored procedure
       execute_query("SELECT * FROM fn_search_employee($1, $2, $3, $4, $5, $6);",
@@ -102,18 +99,73 @@ class Database
   end
 
   # Add method to update the entry
-  def update_entry(entry_data)
-    query = "CALL employees.sp_update_entry($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11);"
-    execute_query(query, entry_data["id"], entry_data["enterprise"], entry_data["subdivision"],
-                  entry_data["department"], entry_data["lab"], entry_data["fio"],
-                  entry_data["position"], entry_data["corp_inner_tel"], entry_data["inner_tel"],
-                  entry_data["email"], entry_data["address"])
+  def upsert_entry(id, entry_data, phone_entries, role)
+    query = "SELECT * FROM fn_upsert_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text, $12::text);"
+    result = execute_query(query,
+                  id.to_i,
+                  entry_data[:enterprise].to_s,
+                  entry_data[:subdivision].to_s,
+                  entry_data[:department].to_s,
+                  entry_data[:lab].to_s,
+                  entry_data[:fio].to_s,
+                  entry_data[:position].to_s,
+                  entry_data[:corp_inner_tel].to_i,
+                  entry_data[:inner_tel].to_i,
+                  entry_data[:email].to_s,
+                  entry_data[:address].to_s,
+                  role)
+    if result.nil?
+      nil
+    end
+    if id.nil? || id == 0
+      id = result[0]['fn_upsert_entry'].to_i
+    end
+    if !phone_entries.nil? && !phone_entries.to_json.empty?
+      query = "CALL sp_update_phones($1, $2::integer[][]);"
+      result = execute_query(query, id, phone_entries)
+    end
+    if result.nil?
+      nil
+    end
+    id
   end
 
   # Add method to delete the entry
   def delete_entry(id)
-    query = "CALL employees.sp_delete_entry($1);"
-    execute_query(query, id)
+    query = "CALL sp_delete_entry($1::integer);"
+    execute_query(query, id.to_i)
+    id
+  end
+
+  def store_image(id, image_path)
+    begin
+      # Read image data as binary
+      image_data = File.open(image_path, 'rb') { |file| file.read }
+
+      db = PG.connect(dbname: 'your_database_name', user: 'your_username', password: 'your_password')
+
+      # Insert the image into the employees_photos table
+      db.exec_params("INSERT INTO employees_photos (employee_id, photo) VALUES ($1, $2)", [employee_id, image_data])
+
+      puts "Image successfully stored in the database."
+    rescue PG::Error => e
+      puts "Database error: #{e.message}"
+    ensure
+      db&.close if db
+    end
+  end
+
+  def upload_image_to_db(selected_image_path, id)
+    # Read the image file as binary data
+    image_data = File.open(selected_image_path, 'rb') { |file| file.read }
+
+    # Update the employee's photo in the database
+    execute_query(
+      "INSERT employees.photos SET photo = $1 WHERE employee_id = $2",
+      image_data, id
+    )
+
+    puts "Image uploaded successfully for employee ID #{id}"
   end
 
   private

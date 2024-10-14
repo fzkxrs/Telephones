@@ -1,7 +1,4 @@
-require 'bcrypt'
-
 module UsersDb
-  attr_reader :default_role
   def initialize
     @users_table_name = "employees.users"
   end
@@ -9,12 +6,10 @@ module UsersDb
   public
 
   def create_user(username, password)
-    @default_role = "moderator"
-    password_hash = BCrypt::Password.create(password)
     query = <<-SQL
     INSERT INTO #{@users_table_name} (username, password_hash, role) VALUES ($1, $2, $3)
     SQL
-    result = execute_query(query, username, password_hash, @default_role)
+    result = execute_query(query, username, password, "user")
     result.nil?
   end
 
@@ -26,7 +21,7 @@ module UsersDb
 
     if result.any?
       stored_password = result[0]['password_hash']
-      if BCrypt::Password.new(stored_password) == password
+      if stored_password == password
         return result[0]['role'], result[0]['username'] # Authentication success
       end
     end

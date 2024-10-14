@@ -4,18 +4,18 @@ class Auth
   attr_reader :logged_in_user
   attr_reader :role
 
-  def initialize(db, details_fields, phone_entries, save_button, delete_button)
+  def initialize(db, details_fields, phone_entries, save_button, delete_button, create_button)
     @details_fields = details_fields
     @phone_entries = phone_entries
     @save_button = save_button
     @delete_button = delete_button
+    @create_button = create_button
     @logged_in_user = nil # This will store the username of the logged-in user
     @role = nil # This will store the role of the logged-in user
     @db = db
   end
 
   def register_user(username, password)
-    password_hash = BCrypt::Password.new(password)
     @db.get_stored_password_for(username)
   end
 
@@ -60,7 +60,6 @@ class Auth
           enable_editable_fields
           success_dialog.run
           success_dialog.destroy
-          # Enable editing of fields for moderators/admins
           # Here, update your application's UI for logged-in users
         else
           error_dialog = Gtk::MessageDialog.new(
@@ -156,17 +155,42 @@ class Auth
   end
 
   def enable_editable_fields
-    @details_fields.each_value do |field|
-      field.editable = true
-      field.can_focus = true
-    end
-    @phone_entries.each do |field|
-      field.editable = true
-      field.can_focus = true
-    end
-    @save_button.sensitive = true
-    if @role == 'admin'
+    if @role != 'admin' && @details_fields[:enterprise].text == @role || @role == 'admin'
+      @details_fields.each_value do |field|
+        if field.text != @role
+          field.editable = true
+          field.can_focus = true
+        end
+      end
+      @phone_entries.each do |field|
+        field.each do |element|
+          element.editable = true
+        end
+        field.each do |element|
+          element.can_focus = true
+        end
+      end
+      @save_button.sensitive = true
+      @create_button.sensitive = true
       @delete_button.sensitive = true
+    elsif !@role.nil?
+      @create_button.sensitive = true
+    else
+      @details_fields.each_value do |field|
+        field.editable = false
+        field.can_focus = false
+      end
+      @phone_entries.each do |field|
+        field.each do |element|
+          element.editable = false
+        end
+        field.each do |element|
+          element.can_focus = false
+        end
+      end
+      @save_button.sensitive = false
+      @create_button.sensitive = false
+      @delete_button.sensitive = false
     end
   end
 end
