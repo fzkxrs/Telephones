@@ -134,6 +134,7 @@ class Database
   def delete_entry(id)
     query = "CALL sp_delete_entry($1::integer);"
     execute_query(query, id.to_i)
+    id
   end
 
   def store_image(id, image_path)
@@ -161,7 +162,7 @@ class Database
     # Update the employee's photo in the database
     execute_query(
       "INSERT employees.photos SET photo = $1 WHERE employee_id = $2",
-      PG::Connection.escape_bytea(image_data), id
+      image_data, id
     )
 
     puts "Image uploaded successfully for employee ID #{id}"

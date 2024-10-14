@@ -101,7 +101,6 @@ class GUI
     delete_button = Gtk::Button.new(label: "Удалить")
     create_button = Gtk::Button.new(label: "+")
 
-
     save_button.sensitive = false
     delete_button.sensitive = false # Only admins can delete
     create_button.sensitive = false

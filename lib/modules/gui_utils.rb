@@ -171,17 +171,6 @@ module GuiUtils
 
   # Enable editing of fields for moderators/admins
   def save_changes(details_fields, phone_entries, role)
-    if @id == 0
-      failed = Gtk::MessageDialog.new(
-        parent: @window,
-        flags: :destroy_with_parent,
-        type: :info,
-        buttons_type: :close,
-        message: "Пользователя не существует"
-      )
-      failed.run
-      failed.destroy
-    end
     entry_data = details_fields.transform_values(&:text) # Collect data from fields
     phones_data = phone_entries.map do |phone_row|
       phone_row.map do |entry|
@@ -190,6 +179,9 @@ module GuiUtils
     end.reject { |phone_row| phone_row.all?(&:nil?) }
     postgres_array = "{#{phones_data.map { |row| "{#{row.join(',')}}" }.join(',')}}"
     @id = @db.upsert_entry(@id, entry_data, postgres_array, role) # Update the database with the new values
+    if !@selected_image_path.nil?
+      @id = @db.upload_image_to_db(@selected_image_path, @id)
+    end
     if @id.nil?
       failed_dialog = Gtk::MessageDialog.new(
         parent: @window,
@@ -226,6 +218,7 @@ module GuiUtils
     confirm_dialog.signal_connect("response") do |_, response|
       if response == Gtk::ResponseType::YES
         @db.delete_entry(@id) # Call your DB method to delete the entry
+        @id = 0
         success_dialog = Gtk::MessageDialog.new(
           parent: @window,
           flags: :destroy_with_parent,
