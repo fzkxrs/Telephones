@@ -155,10 +155,12 @@ class Auth
   end
 
   def enable_editable_fields
-        if @role != 'admin' && @details_fields[:enterprise].text == @role || @role == 'admin'
+    if @role != 'admin' && @details_fields[:enterprise].text == @role || @role == 'admin'
       @details_fields.each_value do |field|
-        field.editable = true
-        field.can_focus = true
+        if field.text != @role
+          field.editable = true
+          field.can_focus = true
+        end
       end
       @phone_entries.each do |field|
         field.each do |element|
