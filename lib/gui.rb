@@ -145,16 +145,16 @@ class GUI
 
     # Photo placeholder
     # Create an EventBox to wrap the photo_box
-    photo_event_box = Gtk::EventBox.new
+    @photo_event_box = Gtk::EventBox.new
 
     # Photo placeholder (DrawingArea)
-    photo_box = Gtk::DrawingArea.new
-    photo_box.set_size_request(100, 150)
-    photo_box.override_background_color(:normal, Gdk::RGBA.new(0.9, 0.9, 0.9, 1))
+    @photo_box = Gtk::DrawingArea.new
+    @photo_box.set_size_request(100, 150)
+    @photo_box.override_background_color(:normal, Gdk::RGBA.new(0.9, 0.9, 0.9, 1))
 
     # Draw the placeholder cross
-    photo_box.signal_connect "draw" do
-      cr = photo_box.window.create_cairo_context
+    @photo_box.signal_connect "draw" do
+      cr = @photo_box.window.create_cairo_context
       cr.set_source_rgb(0.6, 0.6, 0.6)
       cr.move_to(0, 0)
       cr.line_to(100, 150)
@@ -164,12 +164,12 @@ class GUI
     end
 
     # Add photo_box to the EventBox
-    photo_event_box.add(photo_box)
+    @photo_event_box.add(@photo_box)
 
     # Organize the main layout
     hbox.pack_start(vbox_left, expand: false, fill: false, padding: 10)
     hbox.pack_start(grid, expand: true, fill: true, padding: 10)
-    hbox.pack_start(photo_event_box, expand: false, fill: false, padding: 10)
+    hbox.pack_start(@photo_event_box, expand: false, fill: false, padding: 10)
 
     phone_entries = []
     i = 0
@@ -221,7 +221,7 @@ class GUI
           fio_entry,
           work_phone_entry,
           phone_entries,
-          photo_event_box,
+          @photo_event_box,
           db
     )
 
@@ -232,7 +232,10 @@ class GUI
       enterprise_combo.remove_all
       enterprises.each { |enterprise| enterprise_combo.append_text(enterprise) }
     end
-    create_button.signal_connect("clicked") { create_new_user(details_fields, phone_entries, @auth.role) }
+    create_button.signal_connect("clicked") do
+      create_new_user(details_fields, phone_entries, @auth.role)
+      @id = 0
+    end
 
     @window.signal_connect("key_press_event") { |widget, event| @auth.on_key_press(widget, event) }
     @window.add(hbox)
