@@ -37,6 +37,22 @@ class Database
 
   # Search employee by multiple criteria
   def search_employee(enterprise, subdivision, department, lab, fio, tel)
+    search_id = 0
+    if tel
+      result = execute_query("SELECT * FROM fn_find_phone_id($1);",
+                    tel)
+      unless result.nil?
+        search_id = result[0]["fn_find_phone_id"].to_i
+      end
+    end
+    if search_id != 0
+      enterprise = nil
+      subdivision = nil
+      department = nil
+      lab = nil
+      tel = nil
+      fio = nil
+    end
     # Reset unnecessary fields based on conditions
     if tel && fio
       enterprise = nil
@@ -57,8 +73,8 @@ class Database
 
     begin
       # Call the stored procedure
-      execute_query("SELECT * FROM fn_search_employee($1, $2, $3, $4, $5, $6);",
-                      enterprise, subdivision, department, lab, fio, tel)
+      execute_query("SELECT * FROM fn_search_employee($1, $2, $3, $4, $5, $6, $7);",
+                      enterprise, subdivision, department, lab, fio, tel, search_id)
     rescue => e
       # Handle error
       puts "Error executing stored procedure: #{e.message}"
