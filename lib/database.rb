@@ -5,7 +5,7 @@ class Database
   include UsersDb
   attr_reader :connection
 
-  def initialize(db_config)
+  def initialize(db_config, logger)
     @dbname = db_config['database']
     @user = db_config['username']
     @password = db_config['password']
@@ -13,6 +13,7 @@ class Database
     @data_table_name = "employees.data"
     @phones_table_name = "employees.phones"
     @users_table_name = "employees.users"
+    @logger = logger
 
     # Establish connection when initializing the class
     @connection = PG.connect(dbname: @dbname, user: @user, password: @password, host: @host)
@@ -29,14 +30,29 @@ class Database
 
   def test_connection
     if @connection
-      puts "Connected to the database successfully!"
+      @logger.info( "Connected to the database successfully!")
     else
-      puts "Failed to connect to the database."
+      @logger.error( "Failed to connect to the database.")
     end
   end
 
   # Search employee by multiple criteria
   def search_employee(enterprise, subdivision, department, lab, fio, tel)
+    search_id = 0
+    if tel
+      result = execute_query("SELECT * FROM fn_find_phone_id($1);", tel)
+      unless result.nil?
+        search_id = result[0]["fn_find_phone_id"].to_i
+      end
+    end
+    if search_id != 0
+      enterprise = nil
+      subdivision = nil
+      department = nil
+      lab = nil
+      tel = nil
+      fio = nil
+    end
     # Reset unnecessary fields based on conditions
     if tel && fio
       enterprise = nil
@@ -57,11 +73,11 @@ class Database
 
     begin
       # Call the stored procedure
-      execute_query("SELECT * FROM fn_search_employee($1, $2, $3, $4, $5, $6);",
-                      enterprise, subdivision, department, lab, fio, tel)
+      execute_query("SELECT * FROM fn_search_employee($1, $2, $3, $4, $5, $6, $7);",
+                    enterprise, subdivision, department, lab, fio, tel, search_id)
     rescue => e
       # Handle error
-      puts "Error executing stored procedure: #{e.message}"
+      @logger.error( "Error executing stored procedure: #{e.message}")
     end
   end
 
@@ -100,20 +116,22 @@ class Database
 
   # Add method to update the entry
   def upsert_entry(id, entry_data, phone_entries, role)
-    query = "SELECT * FROM fn_upsert_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text, $12::text);"
+    query = "SELECT * FROM fn_upsert_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text, $12::text, $13::integer, $14::integer);"
     result = execute_query(query,
-                  id.to_i,
-                  entry_data[:enterprise].to_s,
-                  entry_data[:subdivision].to_s,
-                  entry_data[:department].to_s,
-                  entry_data[:lab].to_s,
-                  entry_data[:fio].to_s,
-                  entry_data[:position].to_s,
-                  entry_data[:corp_inner_tel].to_i,
-                  entry_data[:inner_tel].to_i,
-                  entry_data[:email].to_s,
-                  entry_data[:address].to_s,
-                  role)
+                           id.to_i,
+                           entry_data[:enterprise].to_s,
+                           entry_data[:subdivision].to_s,
+                           entry_data[:department].to_s,
+                           entry_data[:lab].to_s,
+                           entry_data[:fio].to_s,
+                           entry_data[:position].to_s,
+                           entry_data[:corp_inner_tel].to_i,
+                           entry_data[:inner_tel].to_i,
+                           entry_data[:email].to_s,
+                           entry_data[:address].to_s,
+                           role,
+                           entry_data[:office_mobile].to_s,
+                           entry_data[:home_phone].to_s)
     if result.nil?
       nil
     end
@@ -137,7 +155,6 @@ class Database
     id
   end
 
-
   def upload_image_to_db(selected_image_path, id, username)
     # Use the file path directly
     photo_path = selected_image_path
@@ -149,7 +166,7 @@ class Database
       id, photo_path, username
     )
 
-    puts "Image path uploaded successfully for employee ID #{id}"
+    @logger.info( "Image path uploaded successfully for employee ID #{id}")
     id
   end
 
@@ -163,10 +180,10 @@ class Database
     # Check if a result was found
     if result.any?
       photo_path = result[0]['photo_path']
-      puts "Image path found for employee ID #{id}: #{photo_path}"
+      @logger.info( "Image path found for employee ID #{id}: #{photo_path}")
       photo_path
     else
-      puts "No image path found for employee ID #{id}"
+      @logger.error( "No image path found for employee ID #{id}")
       ""
     end
   end
@@ -186,13 +203,13 @@ class Database
         end
         return result
       rescue PG::Error => e
-        puts "Database error: #{e.message}"
+        @logger.error( "Database error: #{e.message}")
         return nil
       ensure
         close_connection
       end
     else
-      puts "Connection is nil. Could not execute the query."
+      @logger.error( "Connection is nil. Could not execute the query.")
     end
   end
 

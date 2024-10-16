@@ -1,8 +1,11 @@
 require_relative 'database'
+require 'logger'
 
 class TestDatabase < Database
   def initialize(db_config)
-    super(db_config)
+    log_file = 'application.log'
+    @logger = Logger.new(log_file)
+    super(db_config, @logger)
   end
 
   public

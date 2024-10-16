@@ -1,8 +1,11 @@
 require_relative '../lib/test_database'
+require 'logger'
 
 RSpec.describe Database do
+  log_file = 'application.log'
+  @logger = Logger.new(log_file)
   let(:db_config) { YAML.load_file('config/database.yml')['test'] }
-  let(:db) { Database.new(db_config) }
+  let(:db) { Database.new(db_config, @logger) }
 
   before(:all) do
     db.setup_test_data

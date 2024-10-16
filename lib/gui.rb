@@ -5,11 +5,13 @@ require_relative 'modules/gui_utils'
 
 class GUI
   include GuiUtils
-  def initialize(db)
+
+  def initialize(db, logger)
     @window = Gtk::Window.new("Телефоны ОАО \"Обеспечение РФЯЦ-ВНИИЭФ\" и ДЗО")
     @window.set_default_size(800, 400)
     @window.set_border_width(10)
     @db = db
+    @logger = logger
 
     # Main layout container (Horizontal Box)
     hbox = Gtk::Box.new(:horizontal, 10)
@@ -35,7 +37,6 @@ class GUI
     subdivision_combo.sensitive = false # Initially set subdivision combo to insensitive
     vbox_left.pack_start(subdivision_label, expand: false, fill: false, padding: 0)
     vbox_left.pack_start(subdivision_combo, expand: false, fill: false, padding: 10)
-
 
     # Department Label and ComboBox
     department_label = Gtk::Label.new("Отдел/Группа")
@@ -79,7 +80,9 @@ class GUI
       corp_inner_tel: Gtk::Entry.new,
       inner_tel: Gtk::Entry.new,
       email: Gtk::Entry.new,
-      address: Gtk::Entry.new
+      address: Gtk::Entry.new,
+      office_mobile: Gtk::Entry.new,
+      home_phone: Gtk::Entry.new
     }
 
     dictionary = {
@@ -92,7 +95,9 @@ class GUI
       corp_inner_tel: "Корп. внутр. тел",
       inner_tel: "Внутр. тел. по предприятию",
       email: "E-mail",
-      address: "Адрес установки"
+      address: "Адрес установки",
+      office_mobile: "Служ. моб.",
+      home_phone: "Дом. тел."
     }
 
     row = 0
@@ -127,7 +132,6 @@ class GUI
 
     # Add event listener for the delete button (Admins only)
     delete_button.signal_connect("clicked") { delete_entry }
-
 
     # Table for phone numbers
     phone_label = Gtk::Label.new("Телефон")
@@ -177,7 +181,7 @@ class GUI
     scrolled_window = Gtk::ScrolledWindow.new
     scrolled_window.set_policy(:automatic, :automatic)
     scrolled_window.set_min_content_height(100) # Adjust this value for the desired height
-    scrolled_window.set_min_content_width(800)  # Adjust this value for the desired width
+    scrolled_window.set_min_content_width(800) # Adjust this value for the desired width
 
     # Create a box to hold the dynamic entries for phone numbers
     phones_vbox = Gtk::Box.new(:vertical, 5)
@@ -222,7 +226,8 @@ class GUI
           work_phone_entry,
           phone_entries,
           @photo_event_box,
-          db
+          db,
+          @logger
     )
 
     # Add event listener for the save button

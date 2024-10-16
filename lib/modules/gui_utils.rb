@@ -13,8 +13,10 @@ module GuiUtils
                  work_phone_entry,
                  phone_entries,
                  photo_event_box,
-                 db
+                 db,
+                 logger
   )
+    @logger = logger
     department_combo.signal_connect('changed') do
       lab_combo.remove_all
       # Enable subdivision_combo when an enterprise is selected
@@ -55,6 +57,7 @@ module GuiUtils
     end
 
     search_button.signal_connect('clicked') do
+      clear_fields(details_fields, phone_entries)
       # Gather the search input values from the ComboBoxes and Entries
       fio_value = fio_entry.text.empty? ? nil : fio_entry.text
       enterprise_value = enterprise_combo.active_text == "Предприятие" ? nil : enterprise_combo.active_text
@@ -93,6 +96,8 @@ module GuiUtils
         details_fields[:inner_tel]&.text = res[0]["inner_tel"] || ""
         details_fields[:email]&.text = res[0]["email"] || ""
         details_fields[:address]&.text = res[0]["address"] || ""
+        details_fields[:office_mobile]&.text = res[0]["office_mobile"] || ""
+        details_fields[:home_phone]&.text = res[0]["home_phone"] || ""
 
         i = 0
         res.each do |phone_entry_data|
@@ -159,7 +164,7 @@ module GuiUtils
       if response == Gtk::ResponseType::OK
         selected_image_path = dialog.filename
         if File.exist?(selected_image_path)
-          puts "Selected image path: #{selected_image_path}"
+          @logger.info("Selected image path: #{selected_image_path}")
 
           # Get the program's root folder (where the program is running from)
           program_root = Pathname.new(Dir.pwd)
@@ -171,11 +176,11 @@ module GuiUtils
           if absolute_image_path.to_s[0] == program_root.to_s[0]
             # Compute relative path only if both are on the same drive
             relative_image_path = absolute_image_path.relative_path_from(program_root)
-            puts "Relative image path: #{relative_image_path}"
-            @selected_image_path = relative_image_path.to_s  # Use the relative path
+            @logger.info("Relative image path: #{relative_image_path}")
+            @selected_image_path = relative_image_path.to_s # Use the relative path
           else
             # If different drives, use the absolute path
-            puts "The selected image is on a different drive, using the absolute path."
+            @logger.info("The selected image is on a different drive, using the absolute path.")
             @selected_image_path = absolute_image_path.to_s
           end
 
@@ -185,10 +190,10 @@ module GuiUtils
           end
 
         else
-          puts "Error: Selected file does not exist."
+          @logger.error("Error: Selected file does not exist.")
         end
       else
-        puts "File selection was canceled."
+        @logger.info("File selection was canceled.")
       end
 
       dialog.destroy
@@ -282,6 +287,8 @@ module GuiUtils
       details_fields[:inner_tel]&.text = ""
       details_fields[:email]&.text = ""
       details_fields[:address]&.text = ""
+      details_fields[:office_mobile]&.text = ""
+      details_fields[:home_phone]&.text = ""
       phone_entries.each do |entry_set|
         entry_set.each do |entry|
           entry.text = ""
@@ -292,12 +299,16 @@ module GuiUtils
     def display_image_in_window(image_path, event_box)
       # Check if the image path is valid (not nil, not empty, and the file exists)
       if image_path.nil? || image_path.empty? || !File.exist?(image_path)
-        puts "Invalid image path or file does not exist."
+        @logger.info("Invalid image path or file does not exist.")
+        if event_box.child
+          @logger.info("EventBox already contains a Gtk::Box, removing it.")
+          event_box.remove(event_box.child) # Remove the existing box
+        end
         return
       end
       # Remove any existing child widget from the window
       if event_box.child
-        puts "EventBox already contains a Gtk::Box, removing it."
+        @logger.info("EventBox already contains a Gtk::Box, removing it.")
         event_box.remove(event_box.child) # Remove the existing box
       end
 
