@@ -6,11 +6,12 @@ require_relative 'modules/gui_utils'
 class GUI
   include GuiUtils
 
-  def initialize(db)
+  def initialize(db, logger)
     @window = Gtk::Window.new("Телефоны ОАО \"Обеспечение РФЯЦ-ВНИИЭФ\" и ДЗО")
     @window.set_default_size(800, 400)
     @window.set_border_width(10)
     @db = db
+    @logger = logger
 
     # Main layout container (Horizontal Box)
     hbox = Gtk::Box.new(:horizontal, 10)
@@ -225,7 +226,8 @@ class GUI
           work_phone_entry,
           phone_entries,
           @photo_event_box,
-          db
+          db,
+          @logger
     )
 
     # Add event listener for the save button

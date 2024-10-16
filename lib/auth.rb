@@ -73,7 +73,7 @@ class Auth
           error_dialog.destroy
         end
       elsif response == Gtk::ResponseType::CANCEL
-        puts "Cancelled"
+        @logger.error( "Cancelled")
       end
       dialog.destroy # Destroy the dialog after any response (OK or Cancel)
     end
@@ -191,6 +191,14 @@ class Auth
       @save_button.sensitive = false
       @create_button.sensitive = false
       @delete_button.sensitive = false
+    end
+    # Show office_mobile and home_phone only if role is 'СГК'
+    if ['СГК', 'МИРА6', 'Х14', 'Энергосбыт', 'CЭСК', 'СТСК', 'ЭАТ', 'СРПиП', 'СарГаз', 'Зеленая', 'admin'].include?(@role)
+      @details_fields[:office_mobile].opacity = 1
+      @details_fields[:home_phone].opacity = 1
+    else
+      @details_fields[:office_mobile].opacity = 0
+      @details_fields[:home_phone].opacity = 0
     end
   end
 end
