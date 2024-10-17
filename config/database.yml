@@ -5,10 +5,10 @@ development:
   host: localhost
 
 release:
-  database: nil
-  username: nil
-  password: nil
-  host: localhost
+  database: postgres
+  username: postgres
+  password: 1144
+  host: 172.16.230.150
 
 test:
   database: postgres
