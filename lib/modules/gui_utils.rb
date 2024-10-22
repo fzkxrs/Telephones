@@ -21,7 +21,7 @@ module GuiUtils
       lab_combo.remove_all
       # Enable subdivision_combo when an enterprise is selected
       if department_combo.active_text && !department_combo.active_text.empty?
-        labs = db.search_by_arg("lab", "department", department_combo.active_text).append("")
+        labs = db.search_by_arg('lab', 'department', department_combo.active_text).append('')
         labs.each { |lab| lab_combo.append_text(lab) }
         lab_combo.sensitive = true # Enable the lab combo
       else
@@ -34,7 +34,7 @@ module GuiUtils
       lab_combo.remove_all
       # Enable department_combo when an enterprise is selected
       if subdivision_combo.active_text && !subdivision_combo.active_text.empty?
-        departments = db.search_by_arg("department", "subdivision", subdivision_combo.active_text).append("")
+        departments = db.search_by_arg('department', 'subdivision', subdivision_combo.active_text).append('')
         departments.each { |department| department_combo.append_text(department) }
         department_combo.sensitive = true # Enable the department combo
       else
@@ -48,7 +48,7 @@ module GuiUtils
       lab_combo.remove_all
       # Enable subdivision_combo when an enterprise is selected
       if enterprise_combo.active_text && !enterprise_combo.active_text.empty?
-        subdivisions = db.search_by_arg("subdivision", "enterprise", enterprise_combo.active_text).append("")
+        subdivisions = db.search_by_arg('subdivision', 'enterprise', enterprise_combo.active_text).append('')
         subdivisions.each { |subdivision| subdivision_combo.append_text(subdivision) }
         subdivision_combo.sensitive = true # Enable the subdivision combo
       else
@@ -60,10 +60,10 @@ module GuiUtils
       clear_fields(details_fields, phone_entries)
       # Gather the search input values from the ComboBoxes and Entries
       fio_value = fio_entry.text.empty? ? nil : fio_entry.text
-      enterprise_value = enterprise_combo.active_text == "Предприятие" ? nil : enterprise_combo.active_text
-      subdivision_value = subdivision_combo.active_text == "Подразделение" ? nil : subdivision_combo.active_text
-      department_value = department_combo.active_text == "Отдел/Группа" ? nil : department_combo.active_text
-      lab_value = lab_combo.active_text == "Лаборатория" ? nil : lab_combo.active_text
+      enterprise_value = enterprise_combo.active_text == 'Предприятие' ? nil : enterprise_combo.active_text
+      subdivision_value = subdivision_combo.active_text == 'Подразделение' ? nil : subdivision_combo.active_text
+      department_value = department_combo.active_text == 'Отдел/Группа' ? nil : department_combo.active_text
+      lab_value = lab_combo.active_text == 'Лаборатория' ? nil : lab_combo.active_text
       corp_inner_tel_value = work_phone_entry.text.empty? ? nil : work_phone_entry.text.to_i
 
       # Call the search_employee method with the gathered values
@@ -81,42 +81,40 @@ module GuiUtils
         # Clear the contents of the phone_entries
         phone_entries.each do |entry_set|
           entry_set.each do |entry|
-            entry.text = "" # Clear the text of each phone-related entry field
+            entry.text = '' # Clear the text of each phone-related entry field
           end
         end
 
-        @id = res[0]["id"]
-        details_fields[:enterprise]&.text = res[0]["enterprise"] || ""
-        details_fields[:subdivision]&.text = res[0]["subdivision"] || ""
-        details_fields[:department]&.text = res[0]["department"] || ""
-        details_fields[:lab]&.text = res[0]["lab"] || ""
-        details_fields[:fio]&.text = res[0]["fio"] || ""
-        details_fields[:position]&.text = res[0]["position"] || ""
-        details_fields[:corp_inner_tel]&.text = res[0]["corp_inner_tel"] || ""
-        details_fields[:inner_tel]&.text = res[0]["inner_tel"] || ""
-        details_fields[:email]&.text = res[0]["email"] || ""
-        details_fields[:address]&.text = res[0]["address"] || ""
-        details_fields[:office_mobile]&.text = res[0]["office_mobile"] || ""
-        details_fields[:home_phone]&.text = res[0]["home_phone"] || ""
+        @id = res[0]['id']
+        details_fields[:enterprise]&.text = res[0]['enterprise'] || ''
+        details_fields[:subdivision]&.text = res[0]['subdivision'] || ''
+        details_fields[:department]&.text = res[0]['department'] || ''
+        details_fields[:lab]&.text = res[0]['lab'] || ''
+        details_fields[:fio]&.text = res[0]['fio'] || ''
+        details_fields[:position]&.text = res[0]['position'] || ''
+        details_fields[:corp_inner_tel]&.text = res[0]['corp_inner_tel'] || ''
+        details_fields[:inner_tel]&.text = res[0]['inner_tel'] || ''
+        details_fields[:email]&.text = res[0]['email'] || ''
+        details_fields[:address]&.text = res[0]['address'] || ''
+        details_fields[:office_mobile]&.text = res[0]['office_mobile'] || ''
+        details_fields[:home_phone]&.text = res[0]['home_phone'] || ''
 
         i = 0
         res.each do |phone_entry_data|
           phone_entry = phone_entries[i][0]
-          phone_entry.text = phone_entry_data["phone"].to_s
+          phone_entry.text = phone_entry_data['phone'].to_s
 
           fax_entry = phone_entries[i][1]
-          fax_entry.text = phone_entry_data["fax"].to_s
+          fax_entry.text = phone_entry_data['fax'].to_s
 
           modem_entry = phone_entries[i][2]
-          modem_entry.text = phone_entry_data["modem"].to_s
+          modem_entry.text = phone_entry_data['modem'].to_s
 
           mgr_entry = phone_entries[i][3]
-          mgr_entry.text = phone_entry_data["mg"].to_s
+          mgr_entry.text = phone_entry_data['mg'].to_s
           i += 1
         end
         @auth.enable_editable_fields
-
-        image_widget = Gtk::Image.new
 
         @image_path = @db.get_image_path_by_id(@id)
 
@@ -129,7 +127,7 @@ module GuiUtils
           flags: :destroy_with_parent,
           type: :info,
           buttons_type: :close,
-          message: "Не найдено совпадений по номеру телефона, ФИО или подразделениям"
+          message: 'Не найдено совпадений по номеру телефона, ФИО или подразделениям'
         )
         dialog.run
         dialog.destroy
@@ -140,7 +138,7 @@ module GuiUtils
     photo_event_box.signal_connect('button_press_event') do
       # Create a FileChooserDialog to select an image
       dialog = Gtk::FileChooserDialog.new(
-        title: "Select an Image",
+        title: 'Select an Image',
         parent: @window,
         action: Gtk::FileChooserAction::OPEN,
         buttons: [
@@ -151,12 +149,12 @@ module GuiUtils
 
       # Add a filter for image files
       filter = Gtk::FileFilter.new
-      filter.name = "Image files"
-      filter.add_mime_type("image/png")
-      filter.add_mime_type("image/jpeg")
-      filter.add_pattern("*.png")
-      filter.add_pattern("*.jpg")
-      filter.add_pattern("*.jpeg")
+      filter.name = 'Image files'
+      filter.add_mime_type('image/png')
+      filter.add_mime_type('image/jpeg')
+      filter.add_pattern('*.png')
+      filter.add_pattern('*.jpg')
+      filter.add_pattern('*.jpeg')
       dialog.add_filter(filter)
 
       response = dialog.run
@@ -180,7 +178,7 @@ module GuiUtils
             @selected_image_path = relative_image_path.to_s # Use the relative path
           else
             # If different drives, use the absolute path
-            @logger.info("The selected image is on a different drive, using the absolute path.")
+            @logger.info('The selected image is on a different drive, using the absolute path.')
             @selected_image_path = absolute_image_path.to_s
           end
 
@@ -190,10 +188,10 @@ module GuiUtils
           end
 
         else
-          @logger.error("Error: Selected file does not exist.")
+          @logger.error('Error: Selected file does not exist.')
         end
       else
-        @logger.info("File selection was canceled.")
+        @logger.info('File selection was canceled.')
       end
 
       dialog.destroy
@@ -218,7 +216,7 @@ module GuiUtils
           flags: :destroy_with_parent,
           type: :info,
           buttons_type: :close,
-          message: "Ошибка при сохранении данных"
+          message: 'Ошибка при сохранении данных'
         )
         failed_dialog.run
         failed_dialog.destroy
@@ -228,7 +226,7 @@ module GuiUtils
           flags: :destroy_with_parent,
           type: :info,
           buttons_type: :close,
-          message: "Данные успешно сохранены"
+          message: 'Данные успешно сохранены'
         )
         success_dialog.run
         success_dialog.destroy
@@ -242,10 +240,10 @@ module GuiUtils
         flags: :destroy_with_parent,
         type: :question,
         buttons_type: :yes_no,
-        message: "Вы уверены, что хотите удалить запись?"
+        message: 'Вы уверены, что хотите удалить запись?'
       )
 
-      confirm_dialog.signal_connect("response") do |_, response|
+      confirm_dialog.signal_connect('response') do |_, response|
         if response == Gtk::ResponseType::YES
           @db.delete_entry(@id) # Call your DB method to delete the entry
           @id = 0
@@ -254,7 +252,7 @@ module GuiUtils
             flags: :destroy_with_parent,
             type: :info,
             buttons_type: :close,
-            message: "Запись удалена"
+            message: 'Запись удалена'
           )
           success_dialog.run
           success_dialog.destroy
@@ -270,28 +268,28 @@ module GuiUtils
       clear_fields(details_fields, phone_entries)
       details_fields[:enterprise]&.text = role
       @auth.enable_editable_fields
-      if role != "admin"
+      if role != 'admin'
         details_fields[:enterprise].editable = false
         details_fields[:enterprise].can_focus = false
       end
     end
 
     def clear_fields(details_fields, phone_entries)
-      details_fields[:enterprise]&.text = ""
-      details_fields[:subdivision]&.text = ""
-      details_fields[:department]&.text = ""
-      details_fields[:lab]&.text = ""
-      details_fields[:fio]&.text = ""
-      details_fields[:position]&.text = ""
-      details_fields[:corp_inner_tel]&.text = ""
-      details_fields[:inner_tel]&.text = ""
-      details_fields[:email]&.text = ""
-      details_fields[:address]&.text = ""
-      details_fields[:office_mobile]&.text = ""
-      details_fields[:home_phone]&.text = ""
+      details_fields[:enterprise]&.text = ''
+      details_fields[:subdivision]&.text = ''
+      details_fields[:department]&.text = ''
+      details_fields[:lab]&.text = ''
+      details_fields[:fio]&.text = ''
+      details_fields[:position]&.text = ''
+      details_fields[:corp_inner_tel]&.text = ''
+      details_fields[:inner_tel]&.text = ''
+      details_fields[:email]&.text = ''
+      details_fields[:address]&.text = ''
+      details_fields[:office_mobile]&.text = ''
+      details_fields[:home_phone]&.text = ''
       phone_entries.each do |entry_set|
         entry_set.each do |entry|
-          entry.text = ""
+          entry.text = ''
         end
       end
     end
@@ -299,17 +297,47 @@ module GuiUtils
     def display_image_in_window(image_path, event_box)
       # Check if the image path is valid (not nil, not empty, and the file exists)
       if image_path.nil? || image_path.empty? || !File.exist?(image_path)
-        @logger.info("Invalid image path or file does not exist.")
+        @logger.info('Invalid image path or file does not exist.')
+
+        # Remove existing child in EventBox, if any
         if event_box.child
-          @logger.info("EventBox already contains a Gtk::Box, removing it.")
-          event_box.remove(event_box.child) # Remove the existing box
+          @logger.info('EventBox already contains a Gtk::Box, removing it.')
+          event_box.remove(event_box.child)
         end
+
+        # Create a Gtk::Box for layout
+        placeholder_box = Gtk::Box.new(:vertical)
+
+        # Create the drawing area for the cross
+        @photo_box = Gtk::DrawingArea.new
+        @photo_box.set_size_request(100, 150)
+        @photo_box.override_background_color(:normal, Gdk::RGBA.new(0.9, 0.9, 0.9, 1))
+
+        # Draw the placeholder cross
+        @photo_box.signal_connect "draw" do
+          cr = @photo_box.window.create_cairo_context
+          cr.set_source_rgb(0.6, 0.6, 0.6)
+          cr.move_to(0, 0)
+          cr.line_to(100, 150)
+          cr.move_to(100, 0)
+          cr.line_to(0, 150)
+          cr.stroke
+        end
+
+        # Pack the drawing area and button into the placeholder_box
+        placeholder_box.pack_start(@photo_box, expand: true, fill: true, padding: 0)
+        placeholder_box.pack_start(button, expand: false, fill: false, padding: 10)
+
+        # Add placeholder_box to the EventBox
+        event_box.add(placeholder_box)
+        event_box.show_all
         return
       end
+
       # Remove any existing child widget from the window
       if event_box.child
-        @logger.info("EventBox already contains a Gtk::Box, removing it.")
-        event_box.remove(event_box.child) # Remove the existing box
+        @logger.info('EventBox already contains a Gtk::Box, removing it.')
+        event_box.remove(event_box.child)
       end
 
       # Load the image and resize it to 200x300 pixels
@@ -329,5 +357,6 @@ module GuiUtils
       # Show all widgets
       @window.show_all
     end
+
   end
 end

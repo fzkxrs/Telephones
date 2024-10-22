@@ -247,8 +247,6 @@ class GUI
     @window.signal_connect("destroy") { Gtk.main_quit }
   end
 
-  public
-
   def run
     @window.show_all
     Gtk.main
