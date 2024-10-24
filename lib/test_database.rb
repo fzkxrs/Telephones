@@ -27,7 +27,7 @@ class TestDatabase < Database
       @connection.transaction do |conn|
         test_employees.each do |employee|
           # Define the SQL query for inserting into the 'data' table
-          insert_data_sql = 'INSERT INTO ' + @data_table_name + ' (fio, enterprise, subdivision, department, lab, position, email, address, corp_inner_tel, inner_tel) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;'
+          insert_data_sql = "INSERT INTO #{@data_table_name} (fio, enterprise, subdivision, department, lab, position, email, address, corp_inner_tel, inner_tel) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING id;"
 
           # Execute the query and retrieve the employee ID
           data_result = conn.exec_params(insert_data_sql, [
@@ -39,7 +39,7 @@ class TestDatabase < Database
           employee_id = data_result[0]['id']
 
           # Define the SQL query for inserting into the 'phones' table
-          insert_phone_sql = 'INSERT INTO ' + @phones_table_name + ' (phone, fax, modem, mg, id) VALUES ($1, $2, $3, $4, $5);'
+          insert_phone_sql = "INSERT INTO #{@phones_table_name} (phone, fax, modem, mg, id) VALUES ($1, $2, $3, $4, $5);"
 
           # Insert phone numbers linked to the employee ID
           employee[:phones].each do |phone|
@@ -47,7 +47,7 @@ class TestDatabase < Database
           end
         end
       end
-      puts "Test data has been successfully inserted."
+      puts 'Test data has been successfully inserted.'
     rescue PG::Error => e
       puts "Error inserting test data: #{e.message}"
     end
@@ -59,7 +59,7 @@ class TestDatabase < Database
     begin
       @connection.transaction do |conn|
         # Delete related rows in the 'phones' table first
-        delete_phones_sql = 'DELETE FROM ' + @phones_table_name + ' WHERE id IN (SELECT id FROM ' + @data_table_name + ' WHERE fio = $1);'
+        delete_phones_sql = "DELETE FROM #{@phones_table_name} WHERE id IN (SELECT id FROM #{@data_table_name} WHERE fio = $1);"
 
         # Delete rows in 'phones' table for each test employee
         test_fios = ['John Doe', 'Jane Smith']
@@ -68,12 +68,12 @@ class TestDatabase < Database
         end
 
         # Now, delete the rows in the 'data' table
-        delete_data_sql = 'DELETE FROM ' + @data_table_name + ' WHERE fio = $1;'
+        delete_data_sql = "DELETE FROM #{@data_table_name} WHERE fio = $1;"
         test_fios.each do |fio|
           conn.exec_params(delete_data_sql, [fio])
         end
       end
-      puts "Test data has been successfully deleted."
+      puts 'Test data has been successfully deleted.'
     rescue PG::Error => e
       puts "Error deleting test data: #{e.message}"
     end

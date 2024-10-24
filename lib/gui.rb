@@ -7,7 +7,7 @@ class GUI
   include GuiUtils
 
   def initialize(db, logger)
-    @window = Gtk::Window.new("Телефоны ОАО \"Обеспечение РФЯЦ-ВНИИЭФ\" и ДЗО")
+    @window = Gtk::Window.new('Телефоны ОАО "Обеспечение РФЯЦ-ВНИИЭФ" и ДЗО')
     @window.set_default_size(800, 400)
     @window.set_border_width(10)
     @db = db
@@ -20,33 +20,33 @@ class GUI
     vbox_left = Gtk::Box.new(:vertical, 5)
 
     # Search Fields Label
-    search_label = Gtk::Label.new("Поиск")
+    search_label = Gtk::Label.new('Поиск')
     vbox_left.pack_start(search_label, expand: false, fill: false, padding: 10)
 
     # Enterprise Label and ComboBox
-    enterprise_label = Gtk::Label.new("Предприятие")
+    enterprise_label = Gtk::Label.new('Предприятие')
     enterprise_combo = Gtk::ComboBoxText.new
-    enterprises = db.search_by("enterprise").append("")
+    enterprises = db.search_by('enterprise').append('')
     enterprises.each { |enterprise| enterprise_combo.append_text(enterprise) }
     vbox_left.pack_start(enterprise_label, expand: false, fill: false, padding: 0)
     vbox_left.pack_start(enterprise_combo, expand: false, fill: false, padding: 10)
 
     # Subdivision Label and ComboBox
-    subdivision_label = Gtk::Label.new("Подразделение")
+    subdivision_label = Gtk::Label.new('Подразделение')
     subdivision_combo = Gtk::ComboBoxText.new
     subdivision_combo.sensitive = false # Initially set subdivision combo to insensitive
     vbox_left.pack_start(subdivision_label, expand: false, fill: false, padding: 0)
     vbox_left.pack_start(subdivision_combo, expand: false, fill: false, padding: 10)
 
     # Department Label and ComboBox
-    department_label = Gtk::Label.new("Отдел/Группа")
+    department_label = Gtk::Label.new('Отдел/Группа')
     department_combo = Gtk::ComboBoxText.new
     department_combo.sensitive = false
     vbox_left.pack_start(department_label, expand: false, fill: false, padding: 0)
     vbox_left.pack_start(department_combo, expand: false, fill: false, padding: 10)
 
     # Lab Label and ComboBox
-    lab_label = Gtk::Label.new("Лаборатория")
+    lab_label = Gtk::Label.new('Лаборатория')
     lab_combo = Gtk::ComboBoxText.new
     lab_combo.sensitive = false
     vbox_left.pack_start(lab_label, expand: false, fill: false, padding: 0)
@@ -54,14 +54,14 @@ class GUI
 
     # Other fields (FIO, phone number, etc.)
     fio_entry = Gtk::Entry.new
-    fio_entry.placeholder_text = "ФИО"
+    fio_entry.placeholder_text = 'ФИО'
     vbox_left.pack_start(fio_entry, expand: false, fill: false, padding: 10)
 
     work_phone_entry = Gtk::Entry.new
-    work_phone_entry.placeholder_text = "Служебный телефон"
+    work_phone_entry.placeholder_text = 'Служебный телефон'
     vbox_left.pack_start(work_phone_entry, expand: false, fill: false, padding: 10)
 
-    search_button = Gtk::Button.new(label: "Поиск")
+    search_button = Gtk::Button.new(label: 'Поиск')
     vbox_left.pack_start(search_button, expand: false, fill: false, padding: 10)
 
     # Right side (Details Section)
@@ -86,25 +86,25 @@ class GUI
     }
 
     dictionary = {
-      enterprise: "Предприятие",
-      subdivision: "Департамент",
-      department: "Отдел/Группа",
-      lab: "Лаборатория",
-      fio: "ФИО",
-      position: "Должность",
-      corp_inner_tel: "Корп. внутр. тел",
-      inner_tel: "Внутр. тел. по предприятию",
-      email: "E-mail",
-      address: "Адрес установки",
-      office_mobile: "Служ. моб.",
-      home_phone: "Дом. тел."
+      enterprise: 'Предприятие',
+      subdivision: 'Департамент',
+      department: 'Отдел/Группа',
+      lab: 'Лаборатория',
+      fio: 'ФИО',
+      position: 'Должность',
+      corp_inner_tel: 'Корп. внутр. тел',
+      inner_tel: 'Внутр. тел. по предприятию',
+      email: 'E-mail',
+      address: 'Адрес установки',
+      office_mobile: 'Служ. моб.',
+      home_phone: 'Дом. тел.'
     }
 
     row = 0
     # Create moderator buttons (Save and Delete for admin)
-    save_button = Gtk::Button.new(label: "Сохранить")
-    delete_button = Gtk::Button.new(label: "Удалить")
-    create_button = Gtk::Button.new(label: "+")
+    save_button = Gtk::Button.new(label: 'Сохранить')
+    delete_button = Gtk::Button.new(label: 'Удалить')
+    create_button = Gtk::Button.new(label: '+')
 
     save_button.sensitive = false
     delete_button.sensitive = false # Only admins can delete
@@ -131,13 +131,13 @@ class GUI
     end
 
     # Add event listener for the delete button (Admins only)
-    delete_button.signal_connect("clicked") { delete_entry }
+    delete_button.signal_connect('clicked') { delete_entry }
 
     # Table for phone numbers
-    phone_label = Gtk::Label.new("Телефон")
-    fax_label = Gtk::Label.new("Факс")
-    modem_label = Gtk::Label.new("Модем")
-    mgr_label = Gtk::Label.new("М/г")
+    phone_label = Gtk::Label.new('Телефон')
+    fax_label = Gtk::Label.new('Факс')
+    modem_label = Gtk::Label.new('Модем')
+    mgr_label = Gtk::Label.new('М/г')
 
     grid.attach(phone_label, 1, row, 1, 1)
     grid.attach(fax_label, 2, row, 1, 1)
@@ -157,7 +157,7 @@ class GUI
     @photo_box.override_background_color(:normal, Gdk::RGBA.new(0.9, 0.9, 0.9, 1))
 
     # Draw the placeholder cross
-    @photo_box.signal_connect "draw" do
+    @photo_box.signal_connect 'draw' do
       cr = @photo_box.window.create_cairo_context
       cr.set_source_rgb(0.6, 0.6, 0.6)
       cr.move_to(0, 0)
@@ -231,23 +231,21 @@ class GUI
     )
 
     # Add event listener for the save button
-    save_button.signal_connect("clicked") do
+    save_button.signal_connect('clicked') do
       save_changes(details_fields, phone_entries, @auth.role)
-      enterprises = db.search_by("enterprise").append("")
+      enterprises = db.search_by('enterprise').append('')
       enterprise_combo.remove_all
       enterprises.each { |enterprise| enterprise_combo.append_text(enterprise) }
     end
-    create_button.signal_connect("clicked") do
+    create_button.signal_connect('clicked') do
       create_new_user(details_fields, phone_entries, @auth.role)
       @id = 0
     end
 
-    @window.signal_connect("key_press_event") { |widget, event| @auth.on_key_press(widget, event) }
+    @window.signal_connect('key_press_event') { |_, event| @auth.on_key_press(event) }
     @window.add(hbox)
-    @window.signal_connect("destroy") { Gtk.main_quit }
+    @window.signal_connect('destroy') { Gtk.main_quit }
   end
-
-  public
 
   def run
     @window.show_all

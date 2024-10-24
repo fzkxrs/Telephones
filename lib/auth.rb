@@ -1,8 +1,7 @@
 require_relative 'database'
 
 class Auth
-  attr_reader :logged_in_user
-  attr_reader :role
+  attr_reader :logged_in_user, :role
 
   def initialize(db, details_fields, phone_entries, save_button, delete_button, create_button)
     @details_fields = details_fields
@@ -15,7 +14,7 @@ class Auth
     @db = db
   end
 
-  def register_user(username, password)
+  def register_user(username)
     @db.get_stored_password_for(username)
   end
 
@@ -28,15 +27,15 @@ class Auth
   end
 
   def show_login_dialog
-    dialog = Gtk::Dialog.new(title: "Login", parent: @window, flags: :destroy_with_parent)
+    dialog = Gtk::Dialog.new(title: 'Login', parent: @window, flags: :destroy_with_parent)
 
     username_entry = Gtk::Entry.new
     password_entry = Gtk::Entry.new
     password_entry.visibility = false # Make the password hidden
 
-    dialog.content_area.add(Gtk::Label.new("Имя пользователя:"))
+    dialog.content_area.add(Gtk::Label.new('Имя пользователя:'))
     dialog.content_area.add(username_entry)
-    dialog.content_area.add(Gtk::Label.new("Пароль:"))
+    dialog.content_area.add(Gtk::Label.new('Пароль:'))
     dialog.content_area.add(password_entry)
 
     dialog.add_button(Gtk::Stock::OK, Gtk::ResponseType::OK)
@@ -55,7 +54,7 @@ class Auth
             flags: :destroy_with_parent,
             type: :info,
             buttons_type: :close,
-            message: "Успешный вход в систему"
+            message: 'Успешный вход в систему'
           )
           enable_editable_fields
           success_dialog.run
@@ -67,13 +66,13 @@ class Auth
             flags: :destroy_with_parent,
             type: :info,
             buttons_type: :close,
-            message: "Ошибка входа. Неверный логин или пароль"
+            message: 'Ошибка входа. Неверный логин или пароль'
           )
           error_dialog.run
           error_dialog.destroy
         end
       elsif response == Gtk::ResponseType::CANCEL
-        @logger.error( "Cancelled")
+        @logger.error( 'Cancelled')
       end
       dialog.destroy # Destroy the dialog after any response (OK or Cancel)
     end
@@ -82,7 +81,7 @@ class Auth
   end
 
   def show_register_dialog
-    dialog = Gtk::Dialog.new(title: "Регистрация", parent: @window, flags: :destroy_with_parent)
+    dialog = Gtk::Dialog.new(title: 'Регистрация', parent: @window, flags: :destroy_with_parent)
 
     username_entry = Gtk::Entry.new
     password_entry = Gtk::Entry.new
@@ -90,11 +89,11 @@ class Auth
     password_entry.visibility = false # Make the password hidden
     password_entry_check.visibility = false
 
-    dialog.content_area.add(Gtk::Label.new("Имя пользователя:"))
+    dialog.content_area.add(Gtk::Label.new('Имя пользователя:'))
     dialog.content_area.add(username_entry)
-    dialog.content_area.add(Gtk::Label.new("Пароль:"))
+    dialog.content_area.add(Gtk::Label.new('Пароль:'))
     dialog.content_area.add(password_entry)
-    dialog.content_area.add(Gtk::Label.new("Подтверждение пароля:"))
+    dialog.content_area.add(Gtk::Label.new('Подтверждение пароля:'))
     dialog.content_area.add(password_entry_check)
 
     dialog.add_button(Gtk::Stock::OK, Gtk::ResponseType::OK)
@@ -109,7 +108,7 @@ class Auth
             flags: :destroy_with_parent,
             type: :info,
             buttons_type: :close,
-            message: "Введённные пароли не совпадают"
+            message: 'Введённные пароли не совпадают'
           )
           error_dialog.run
           error_dialog.destroy
@@ -123,7 +122,7 @@ class Auth
               flags: :destroy_with_parent,
               type: :info,
               buttons_type: :close,
-              message: "Регистрация прошла успешно"
+              message: 'Регистрация прошла успешно'
             )
             success_dialog.run
             success_dialog.destroy
@@ -133,7 +132,7 @@ class Auth
               flags: :destroy_with_parent,
               type: :info,
               buttons_type: :close,
-              message: "Пользователь уже существует"
+              message: 'Пользователь уже существует'
             )
             error_dialog.run
             error_dialog.destroy
@@ -144,7 +143,7 @@ class Auth
     end
   end
 
-  def on_key_press(widget, event)
+  def on_key_press(event)
     # Check if Ctrl + Alt + '=' or '+/-' is pressed
     if event.state.control_mask? && event.state.mod1_mask? && (event.keyval == Gdk::Keyval::KEY_equal)
       show_login_dialog

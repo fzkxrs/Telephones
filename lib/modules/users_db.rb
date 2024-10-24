@@ -3,8 +3,6 @@ module UsersDb
     @users_table_name = "employees.users"
   end
 
-  public
-
   def create_user(username, password)
     query = <<-SQL
     INSERT INTO #{@users_table_name} (username, password_hash, role) VALUES ($1, $2, $3)

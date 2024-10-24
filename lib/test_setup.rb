@@ -7,7 +7,7 @@ db = TestDatabase.new(db_config)
 
 # Setup test data
 db.setup_test_data
-puts "Test data loaded successfully!"
+puts 'Test data loaded successfully!'
 
 # Ensure the connection is correct before running any query
 db = TestDatabase.new(db_config)
@@ -20,7 +20,7 @@ if res
     puts "Found: #{row['enterprise']}, #{row['department']}"
   end
 else
-  puts "No results found."
+  puts 'No results found.'
 end
 db.open_connection
 # Uncomment on release
