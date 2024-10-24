@@ -8,7 +8,7 @@ release:
   database: postgres
   username: postgres
   password: 1144
-  host: 172.16.230.150
+  host: 172.16.30.216
 
 test:
   database: postgres

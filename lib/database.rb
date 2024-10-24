@@ -10,9 +10,9 @@ class Database
     @user = db_config['username']
     @password = db_config['password']
     @host = db_config['host']
-    @data_table_name = "employees.data"
-    @phones_table_name = "employees.phones"
-    @users_table_name = "employees.users"
+    @data_table_name = 'employees.data'
+    @phones_table_name = 'employees.phones'
+    @users_table_name = 'employees.users'
     @logger = logger
 
     # Establish connection when initializing the class
@@ -30,9 +30,9 @@ class Database
 
   def test_connection
     if @connection
-      @logger.info( "Connected to the database successfully!")
+      @logger.info( 'Connected to the database successfully!')
     else
-      @logger.error( "Failed to connect to the database.")
+      @logger.error( 'Failed to connect to the database.')
     end
   end
 
@@ -40,10 +40,8 @@ class Database
   def search_employee(enterprise, subdivision, department, lab, fio, tel)
     search_id = 0
     if tel
-      result = execute_query("SELECT * FROM fn_find_phone_id($1);", tel)
-      unless result.nil?
-        search_id = result[0]["fn_find_phone_id"].to_i
-      end
+      result = execute_query('SELECT * FROM fn_find_phone_id($1);', tel)
+      search_id = result[0]['fn_find_phone_id'].to_i unless result.nil?
     end
     if search_id != 0
       enterprise = nil
@@ -67,13 +65,11 @@ class Database
       lab = nil
       fio = nil
     end
-    if fio
-      tel = nil
-    end
+    tel = nil if fio
 
     begin
       # Call the stored procedure
-      execute_query("SELECT * FROM fn_search_employee($1, $2, $3, $4, $5, $6, $7);",
+      execute_query('SELECT * FROM fn_search_employee($1, $2, $3, $4, $5, $6, $7);',
                     enterprise, subdivision, department, lab, fio, tel, search_id)
     rescue => e
       # Handle error
@@ -116,7 +112,7 @@ class Database
 
   # Add method to update the entry
   def upsert_entry(id, entry_data, phone_entries, role)
-    query = "SELECT * FROM fn_upsert_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text, $12::text, $13::integer, $14::integer);"
+    query = 'SELECT * FROM fn_upsert_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text, $12::text, $13::integer, $14::integer);'
     result = execute_query(query,
                            id.to_i,
                            entry_data[:enterprise].to_s,
@@ -132,25 +128,21 @@ class Database
                            role,
                            entry_data[:office_mobile].to_s,
                            entry_data[:home_phone].to_s)
-    if result.nil?
-      nil
-    end
-    if id.nil? || id == 0
-      id = result[0]['fn_upsert_entry'].to_i
-    end
-    if !phone_entries.nil? && phone_entries != "{}"
-      query = "CALL sp_update_phones($1, $2::integer[][]);"
+    return nil if result.nil?
+
+    id = result[0]['fn_upsert_entry'].to_i if id.nil? || id == 0
+    if !phone_entries.nil? && phone_entries != '{}'
+      query = 'CALL sp_update_phones($1, $2::integer[][]);'
       result = execute_query(query, id, phone_entries)
     end
-    if result.nil?
-      nil
-    end
+    return nil if result.nil?
+
     id
   end
 
   # Add method to delete the entry
   def delete_entry(id)
-    query = "CALL sp_delete_entry($1::integer);"
+    query = 'CALL sp_delete_entry($1::integer);'
     execute_query(query, id.to_i)
     id
   end
@@ -173,7 +165,7 @@ class Database
   def get_image_path_by_id(id)
     # Query to retrieve the photo_path from the database by employee ID
     result = execute_query(
-      "SELECT photo_path FROM employees.photos WHERE id = $1",
+      'SELECT photo_path FROM employees.photos WHERE id = $1',
       id
     )
 
@@ -184,7 +176,7 @@ class Database
       photo_path
     else
       @logger.error( "No image path found for employee ID #{id}")
-      ""
+      ''
     end
   end
 
@@ -209,7 +201,7 @@ class Database
         close_connection
       end
     else
-      @logger.error( "Connection is nil. Could not execute the query.")
+      @logger.error( 'Connection is nil. Could not execute the query.')
     end
   end
 

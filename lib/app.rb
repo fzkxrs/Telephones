@@ -1,4 +1,5 @@
 # app.rb
+require 'English'
 require 'logger'
 require 'yaml'
 require_relative 'gui'
@@ -12,7 +13,7 @@ class App
     @logger.level = Logger::DEBUG
 
     # Log an example message
-    @logger.info("Program initialized")
+    @logger.info('Program initialized')
 
     at_exit do
       handle_exit(log_file)
@@ -21,10 +22,10 @@ class App
 
   def run
     begin
-      @logger.debug("Program started")
+      @logger.debug('Program started')
 
       # Load database configuration
-      db_config = YAML.load_file('config/database.yml')['release']
+      db_config = YAML.load_file('config/database.yml')['development']
       db = Database.new(db_config, @logger)
 
       # Initialize and run the GUI
@@ -41,18 +42,18 @@ class App
   private
 
   def handle_exit(log_file)
-    @logger.info("Program exited as expected")
+    @logger.info('Program exited as expected')
     @logger.close
 
-    if $!.nil?
+    if $ERROR_INFO.nil?
       begin
         # Clear the log file on a successful exit
-        File.truncate(log_file, 0)
+        File.truncate(log_file, 10_000)
       rescue Errno::EACCES => e
         @logger.error("Error truncating log file: #{e.message}")
       end
     else
-      @logger.error("Program exited with an error: #{$!.message}")
+      @logger.error("Program exited with an error: #{$ERROR_INFO.message}")
     end
   end
 end
