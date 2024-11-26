@@ -72,7 +72,7 @@ class Auth
           error_dialog.destroy
         end
       elsif response == Gtk::ResponseType::CANCEL
-        @logger.error( 'Cancelled')
+        @logger.error('Cancelled')
       end
       dialog.destroy # Destroy the dialog after any response (OK or Cancel)
     end
@@ -164,8 +164,6 @@ class Auth
       @phone_entries.each do |field|
         field.each do |element|
           element.editable = true
-        end
-        field.each do |element|
           element.can_focus = true
         end
       end
@@ -182,8 +180,6 @@ class Auth
       @phone_entries.each do |field|
         field.each do |element|
           element.editable = false
-        end
-        field.each do |element|
           element.can_focus = false
         end
       end

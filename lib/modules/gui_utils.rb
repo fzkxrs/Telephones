@@ -223,9 +223,9 @@ module GuiUtils
       FileUtils.mkdir_p(images_dir) unless Dir.exist?(images_dir) # Create 'images' folder if it doesn't exist
       new_image_path = File.join(images_dir, image_name) # Full path to the new image
 
-      unless File.exist?(new_image_path)
-        FileUtils.cp(@selected_image_path, new_image_path) # Copy the image
-      end
+      # Check if the file already exists and delete it if it does
+      File.delete(new_image_path) if File.exist?(new_image_path)
+      FileUtils.cp(@selected_image_path, new_image_path) # Copy the image
 
       @selected_image_path = new_image_path # Update selected image path to the new file location
       @id = @db.upload_image_to_db(@selected_image_path, @id, role) # Upload the image to the database

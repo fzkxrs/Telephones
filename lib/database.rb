@@ -40,7 +40,7 @@ class Database
   def search_employee(enterprise, subdivision, department, lab, fio, tel)
     search_id = 0
     if tel
-      result = execute_query('SELECT * FROM fn_find_phone_id($1);', tel)
+      result = execute_query('SELECT * FROM employees.fn_find_phone_id($1);', tel)
       search_id = result[0]['fn_find_phone_id'].to_i unless result.nil?
     end
     if search_id != 0
@@ -69,7 +69,7 @@ class Database
 
     begin
       # Call the stored procedure
-      execute_query('SELECT * FROM fn_search_employee($1, $2, $3, $4, $5, $6, $7);',
+      execute_query('SELECT * FROM employees.fn_search_employee($1, $2, $3, $4, $5, $6, $7);',
                     enterprise, subdivision, department, lab, fio, tel, search_id)
     rescue => e
       # Handle error
@@ -112,7 +112,7 @@ class Database
 
   # Add method to update the entry
   def upsert_entry(id, entry_data, phone_entries, role)
-    query = 'SELECT * FROM fn_upsert_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text, $12::text, $13::integer, $14::integer);'
+    query = 'SELECT * FROM employees.fn_upsert_entry($1::integer, $2::text, $3::text, $4::text, $5::text, $6::text, $7::text, $8::integer, $9::integer, $10::text, $11::text, $12::text, $13::integer, $14::integer);'
     result = execute_query(query,
                            id.to_i,
                            entry_data[:enterprise].to_s,
@@ -132,7 +132,7 @@ class Database
 
     id = result[0]['fn_upsert_entry'].to_i if id.nil? || id == 0
     if !phone_entries.nil? && phone_entries != '{}'
-      query = 'CALL sp_update_phones($1, $2::integer[][]);'
+      query = 'CALL employees.sp_update_phones($1, $2::integer[][]);'
       result = execute_query(query, id, phone_entries)
     end
     return nil if result.nil?
@@ -142,7 +142,7 @@ class Database
 
   # Add method to delete the entry
   def delete_entry(id)
-    query = 'CALL sp_delete_entry($1::integer);'
+    query = 'CALL employees.sp_delete_entry($1::integer);'
     execute_query(query, id.to_i)
     id
   end
